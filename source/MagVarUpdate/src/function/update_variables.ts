@@ -26,6 +26,7 @@ import {
 import JSON5 from 'json5';
 import { klona } from 'klona';
 import * as math from 'mathjs';
+import { recoverMissingPatchClose } from './update/missing_patch_close';
 
 /**
  * 只复制允许的数学函数和常量，并冻结为独立命名空间。
@@ -854,7 +855,13 @@ export async function updateVariables(
     const delta_status: Partial<MvuData> = { stat_data: {} };
 
     // 重构新增：统一处理宏替换，确保命令中的宏（如 ${variable}）被替换，提升一致性
-    const processed_message_content = substitudeMacros(current_message_content);
+    const recovery = recoverMissingPatchClose(current_message_content);
+    if (recovery.error) {
+        if (errors) errors.push(recovery.error);
+        else toastr.error(recovery.error, '変数更新エラー');
+        return false;
+    }
+    const processed_message_content = substitudeMacros(recovery.text);
 
     // 使用重构后的 extractCommands 提取所有命令
     const commands = extractCommands(processed_message_content);

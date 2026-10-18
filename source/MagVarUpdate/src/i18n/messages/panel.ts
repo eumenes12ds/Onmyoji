@@ -1,0 +1,980 @@
+import { defineMessages } from '@/i18n/messages/types';
+
+export const panelMessages = defineMessages({
+    'panel.title': {
+        'zh-CN': 'MVU 变量框架',
+        en: 'MVU Variable Framework',
+    },
+    'panel.version.section': {
+        'zh-CN': '当前版本',
+        en: 'Current version',
+    },
+    'panel.version.unknown': {
+        'zh-CN': '未知',
+        en: 'Unknown',
+    },
+    'panel.notification.section': {
+        'zh-CN': '通知设置',
+        en: 'Notifications',
+    },
+    'panel.notification.frameworkLoaded': {
+        'zh-CN': 'MVU 框架加载成功时通知',
+        en: 'Notify when the MVU framework loads successfully',
+    },
+    'panel.notification.variablesInitialized': {
+        'zh-CN': '变量初始化成功时通知',
+        en: 'Notify when variables are initialized successfully',
+    },
+    'panel.notification.variableError': {
+        'zh-CN': '变量初始化/更新出错时通知',
+        en: 'Notify when variable initialization or updates fail',
+    },
+    'panel.notification.extraModelParsing': {
+        'zh-CN': '额外模型解析中通知',
+        en: 'Notify while extra-model parsing is running',
+    },
+    'panel.cleanup.section': {
+        'zh-CN': "自動クリーンアップ変数",
+        en: 'Automatic variable cleanup',
+    },
+    'panel.cleanup.enable': {
+        'zh-CN': '启用自动清理变量',
+        en: 'Enable automatic variable cleanup',
+    },
+    'panel.cleanup.strategy': {
+        'zh-CN': '清理策略',
+        en: 'Cleanup strategy',
+    },
+    'panel.cleanup.snapshotInterval': {
+        'zh-CN': "スナップショット保持間隔",
+        en: 'Snapshot retention interval',
+    },
+    'panel.cleanup.recentFloors': {
+        'zh-CN': "保持する変数の最近階層スタック数",
+        en: 'Recent floors whose variables are retained',
+    },
+    'panel.cleanup.restoreFloors': {
+        'zh-CN': "復元をトリガーする変数の最近階層スタック数",
+        en: 'Recent floors that trigger variable restoration',
+    },
+    'panel.compatibility.section': {
+        'zh-CN': "互換性",
+        en: 'Compatibility',
+    },
+    'panel.compatibility.updateChatVariables': {
+        'zh-CN': '变量更新到聊天变量',
+        en: 'Write variable updates to chat variables',
+    },
+    'panel.compatibility.updateChatVariablesHelp': {
+        'zh-CN':
+            '启用后，所有变量更新结果也会输出到聊天变量中。如果部分老角色卡无法正常游玩，可以开启这个开关。',
+        en: 'When enabled, every variable update is also written to chat variables. Enable this if some older character cards do not work correctly.',
+    },
+    'panel.compatibility.showLegacy': {
+        'zh-CN': "旧機能を表示",
+        en: 'Show legacy features',
+    },
+    'panel.compatibility.sendasNotUser': {
+        'zh-CN': 'sendas 不视为 user 消息',
+        en: 'Do not treat sendas as a user message',
+    },
+    'panel.compatibility.nonblockingExtraAnalysis': {
+        'zh-CN': '额外模型解析不阻塞正文显示（实验性）',
+        en: 'Show replies without waiting for extra model analysis (experimental)',
+    },
+    'panel.compatibility.nonblockingExtraAnalysisHelp': {
+        'zh-CN':
+            '默认关闭。开启后，角色卡的部分默认前端页面会立即显示，其他插件的额外分析流程也可同时执行，无需等待变量解析完成。仅对非工具调用的自动解析生效。',
+        en: "Off by default. When enabled, some of a character card's default frontend pages appear immediately, and other plugins can run their additional analysis at the same time, without waiting for variable analysis to finish. Applies only to automatic analysis without tool calling.",
+    },
+    'panel.compatibility.license': {
+        'zh-CN': 'LICENSE',
+        en: 'LICENSE',
+    },
+    'panel.compatibility.licenseIntro': {
+        'zh-CN': 'MVU 采用 MIT 许可证。以下是运行时使用或随扩展打包的第三方开源组件：',
+        en: 'MVU is licensed under MIT. The following third-party components are used at runtime or bundled with the extension:',
+    },
+    'panel.compatibility.licenseComponent': {
+        'zh-CN': '组件',
+        en: 'Component',
+    },
+    'panel.compatibility.licenseIdentifier': {
+        'zh-CN': '许可证',
+        en: 'License',
+    },
+    'panel.compatibility.licenseDetails': {
+        'zh-CN':
+            '许可证标识来自当前依赖元数据；点击组件名称可查看项目，完整条款以各项目 LICENSE 为准。',
+        en: 'License identifiers come from current dependency metadata. Select a component name to view its project; the project LICENSE contains the complete terms.',
+    },
+    'panel.button.section': {
+        'zh-CN': '修复按钮',
+        en: 'Repair actions',
+    },
+    'panel.button.reprocessVariables': {
+        'zh-CN': "変数を再処理",
+        en: 'Reprocess variables',
+    },
+    'panel.button.reloadInitialVariables': {
+        'zh-CN': "初期変数を再読み込み",
+        en: 'Reload initial variables',
+    },
+    'panel.button.snapshotFloor': {
+        'zh-CN': "スナップショット階層",
+        en: 'Snapshot floor',
+    },
+    'panel.button.replayFloor': {
+        'zh-CN': "階層を再演",
+        en: 'Replay floor',
+    },
+    'panel.button.retryExtraModelParsing': {
+        'zh-CN': "追加モデル解析を再試行",
+        en: 'Retry extra-model parsing',
+    },
+    'panel.button.incrementalRepairExtraModelParsing': {
+        'zh-CN': '增量校正额外模型解析',
+        en: 'Incrementally repair extra-model parsing',
+    },
+    'panel.button.clearOldFloorVariables': {
+        'zh-CN': "古い階層の変数をクリア",
+        en: 'Clear variables from old floors',
+    },
+    'panel.help.ariaLabel': {
+        'zh-CN': '帮助',
+        en: 'Help',
+    },
+    'panel.badge.override': {
+        'zh-CN': '角色卡覆盖',
+        en: 'Character-card override',
+    },
+    'panel.badge.overrideWithValue': {
+        'zh-CN': '角色卡覆盖：{value}',
+        en: 'Character-card override: {value}',
+    },
+    'panel.badge.additive': {
+        'zh-CN': '角色卡规则叠加',
+        en: 'Character-card rule added',
+    },
+    'panel.update.section': {
+        'zh-CN': '变量更新方式',
+        en: 'Variable update method',
+    },
+    'panel.update.method.aiOutput': {
+        'zh-CN': '随 AI 输出',
+        en: 'Alongside AI output',
+    },
+    'panel.update.method.extraModel': {
+        'zh-CN': "追加モデル解析",
+        en: 'Extra-model parsing',
+    },
+    'panel.update.method.unsupportedWarning': {
+        'zh-CN':
+            '世界书 [{worldbooks}] 未适配额外模型解析，视为 [mvu_plot] 条目（只会发给剧情 AI、不会发给变量更新 AI）。',
+        en: 'World book [{worldbooks}] is not adapted for extra-model parsing and will be treated as an [mvu_plot] entry (sent only to the story AI, not the variable-update AI).',
+    },
+    'panel.modelSelect.ariaLabel': {
+        'zh-CN': '模型列表',
+        en: 'Model list',
+    },
+    'panel.modelSelect.chooseFromList': {
+        'zh-CN': '（从列表选择）',
+        en: '(Choose from list)',
+    },
+    'panel.modelSelect.loading': {
+        'zh-CN': '获取中…',
+        en: 'Fetching…',
+    },
+    'panel.modelSelect.fetch': {
+        'zh-CN': '获取模型列表',
+        en: 'Fetch model list',
+    },
+    'panel.modelSelect.empty': {
+        'zh-CN': '模型列表为空或获取失败',
+        en: 'The model list is empty or could not be fetched',
+    },
+    'panel.modelSelect.fetchTitle': {
+        'zh-CN': '[MVU]获取模型列表',
+        en: '[MVU] Fetch model list',
+    },
+    'panel.modelSelect.fetchFailureTitle': {
+        'zh-CN': '[MVU]获取模型列表失败',
+        en: '[MVU] Failed to fetch model list',
+    },
+    'panel.prompt.apiOptionsMigrated': {
+        'zh-CN': '破限/应答格式等配置 已迁移到 API 方案，与方案配置绑定',
+        en: 'Jailbreak, response format, and related settings have moved to API profiles and are saved with each profile.',
+    },
+    'panel.source.pi.auth.accountLogin': {
+        'zh-CN': '账号登录',
+        en: 'Account sign-in',
+    },
+    'panel.source.pi.contextWindowHelp': {
+        'zh-CN':
+            '模型一次能读取和生成的总长度，单位为 token。请按服务商说明填写；数值过小会使较长的请求无法发送。',
+        en: 'The total length the model can read and generate, in tokens. Enter the limit given by your provider; setting it too low prevents longer requests from being sent.',
+    },
+    'panel.prompt.section': {
+        'zh-CN': '请求内容',
+        en: 'Request content',
+    },
+    'panel.prompt.jailbreakStrategy': {
+        'zh-CN': "脱獄方案",
+        en: 'Jailbreak strategy',
+    },
+    'panel.prompt.jailbreak.builtin': {
+        'zh-CN': "内蔵脱獄を使用",
+        en: 'Use built-in jailbreak',
+    },
+    'panel.prompt.jailbreak.currentPreset': {
+        'zh-CN': "現在のプリセットを使用",
+        en: 'Use current preset',
+    },
+    'panel.prompt.jailbreak.otherPreset': {
+        'zh-CN': "その他のプリセットを使用",
+        en: 'Use another preset',
+    },
+    'panel.prompt.targetPreset': {
+        'zh-CN': '目标预设',
+        en: 'Target preset',
+    },
+    'panel.prompt.noSavedPreset': {
+        'zh-CN': '未检测到可用的已保存预设',
+        en: 'No available saved presets detected',
+    },
+    'panel.prompt.randomHeader': {
+        'zh-CN': "ランダムヘッダー",
+        en: 'Randomized header',
+    },
+    'panel.prompt.randomHeaderHelp': {
+        'zh-CN':
+            'Gemini 系模型会记录破限头部，因此需要在头部增加随机数。如果你使用的不是 Gemini 系模型，请关闭这个功能，以免缓存失效。',
+        en: 'Gemini-family models may record the jailbreak header, so a random number is added to it. Disable this for non-Gemini models to avoid invalidating the prompt cache.',
+    },
+    'panel.prompt.responseFormat': {
+        'zh-CN': "応答フォーマット",
+        en: 'Response format',
+    },
+    'panel.prompt.response.chatMessage': {
+        'zh-CN': "チャットメッセージ",
+        en: 'Chat message',
+    },
+    'panel.prompt.response.toolCall': {
+        'zh-CN': "ツール呼び出し",
+        en: 'Tool call',
+    },
+    'panel.prompt.response.structured': {
+        'zh-CN': "フォーマット出力",
+        en: 'Structured output',
+    },
+    'panel.prompt.response.structuredV4': {
+        'zh-CN': "フォーマット出力（v4 兼容）",
+        en: 'Structured output (v4 compatible)',
+    },
+    'panel.prompt.disableThinking': {
+        'zh-CN': '关闭 thinking',
+        en: 'Disable thinking',
+    },
+    'panel.prompt.disableThinkingHelp': {
+        'zh-CN': '关闭后可避免部分空回复问题。',
+        en: 'Disabling thinking can prevent some empty responses.',
+    },
+    'panel.prompt.disable': {
+        'zh-CN': '关闭',
+        en: 'Disable',
+    },
+    'panel.prompt.fakeStreaming': {
+        'zh-CN': "疑似ストリーミング互換",
+        en: 'Pseudo-streaming compatibility',
+    },
+    'panel.prompt.fakeStreamingHelp': {
+        'zh-CN':
+            '默认关闭，等待模型一次返回完整结果。若渠道要求流式请求，或等待时经常超时，可尝试勾选。开启后仍会等回复完整后再更新变量。OpenAI Codex 只支持流式传输，会始终使用流式。',
+        en: 'Disabled by default: wait for the complete response. Enable this if your provider requires streaming or requests often time out while waiting. Variables are still updated after the full response arrives. OpenAI Codex requires streaming and always uses it.',
+    },
+    'panel.prompt.whitelist': {
+        'zh-CN': "ワールドブックエントリホワイトリスト正規表現",
+        en: 'World-book entry whitelist regex',
+    },
+    'panel.prompt.whitelistHelp': {
+        'zh-CN':
+            '留空则关闭；非空时，额外模型解析阶段只保留 comment 匹配该正则的世界书条目。支持 {example}。',
+        en: 'Leave blank to disable. When set, extra-model parsing retains only world-book entries whose comment matches this regex. Supports {example}.',
+    },
+    'panel.prompt.whitelistPlaceholder': {
+        'zh-CN': '角色{or}地点 或 /角色{or}地点/i',
+        en: 'character{or}location or /character{or}location/i',
+    },
+    'panel.prompt.blacklist': {
+        'zh-CN': "ワールドブックエントリブラックリスト正規表現",
+        en: 'World-book entry blacklist regex',
+    },
+    'panel.prompt.blacklistHelp': {
+        'zh-CN':
+            '留空则关闭；非空时，额外模型解析阶段会排除 comment 匹配该正则的世界书条目。支持 {example}。',
+        en: 'Leave blank to disable. When set, extra-model parsing excludes world-book entries whose comment matches this regex. Supports {example}.',
+    },
+    'panel.prompt.blacklistPlaceholder': {
+        'zh-CN': '临时{or}禁用 或 /临时{or}禁用/i',
+        en: 'temporary{or}disabled or /temporary{or}disabled/i',
+    },
+    'panel.prompt.regexInvalid': {
+        'zh-CN': '正则无效：{error}',
+        en: 'Invalid regex: {error}',
+    },
+    'panel.prompt.filtered.title': {
+        'zh-CN': '上次分析被筛选的条目',
+        en: 'Entries filtered from the last analysis',
+    },
+    'panel.prompt.filtered.empty': {
+        'zh-CN': '上次分析没有被黑/白名单筛选掉的条目。',
+        en: 'No entries were filtered by the whitelist or blacklist in the last analysis.',
+    },
+    'panel.prompt.filtered.entrySource': {
+        'zh-CN': '条目来源',
+        en: 'Entry source',
+    },
+    'panel.prompt.filtered.worldBook': {
+        'zh-CN': '世界书',
+        en: 'World book',
+    },
+    'panel.prompt.filtered.reason': {
+        'zh-CN': '原因',
+        en: 'Reason',
+    },
+    'panel.prompt.filtered.configSource': {
+        'zh-CN': '配置来源',
+        en: 'Configuration source',
+    },
+    'panel.prompt.filtered.comment': {
+        'zh-CN': '条目备注',
+        en: 'Comment',
+    },
+    'panel.prompt.filtered.globalLore': {
+        'zh-CN': '全局世界书',
+        en: 'Global world book',
+    },
+    'panel.prompt.filtered.characterLore': {
+        'zh-CN': '角色世界书',
+        en: 'Character world book',
+    },
+    'panel.prompt.filtered.chatLore': {
+        'zh-CN': '聊天世界书',
+        en: 'Chat world book',
+    },
+    'panel.prompt.filtered.personaLore': {
+        'zh-CN': '用户世界书',
+        en: 'Persona world book',
+    },
+    'panel.prompt.filtered.whitelistReason': {
+        'zh-CN': "許可リスト",
+        en: 'Whitelist',
+    },
+    'panel.prompt.filtered.blacklistReason': {
+        'zh-CN': "拒否リスト",
+        en: 'Blacklist',
+    },
+    'panel.prompt.filtered.globalConfig': {
+        'zh-CN': "ユーザー共通設定",
+        en: 'User global settings',
+    },
+    'panel.prompt.filtered.characterConfig': {
+        'zh-CN': "キャラクターカード設定",
+        en: 'Character-card settings',
+    },
+    'panel.prompt.toolCallUnavailableTitle': {
+        'zh-CN': "[MVU]无法使用'ツール呼び出し'",
+        en: "[MVU] Cannot use 'Tool call'",
+    },
+    'panel.prompt.toolCallUnsupported': {
+        'zh-CN': '当前 API 源不支持工具调用，请换用支持 tools 的渠道模型或改用其他应答格式',
+        en: 'The current API source does not support tool calls. Choose a provider/model that supports tools, or use another response format.',
+    },
+    'panel.prompt.structuredV4UnavailableTitle': {
+        'zh-CN': "[MVU]无法使用'フォーマット出力(v4兼容)'",
+        en: "[MVU] Cannot use 'Structured output (v4 compatible)'",
+    },
+    'panel.prompt.structuredV4RequiresCustom': {
+        'zh-CN': "フォーマット出力(v4兼容)需要额外模型来源为自定义，不能与插头相同",
+        en: 'Structured output (v4 compatible) requires a custom extra-model source and cannot use the current connection.',
+    },
+    'panel.request.section': {
+        'zh-CN': '请求策略',
+        en: 'Request strategy',
+    },
+    'panel.request.method': {
+        'zh-CN': "リクエスト方式",
+        en: 'Request method',
+    },
+    'panel.request.sequential': {
+        'zh-CN': "順番にリクエストし、失敗したら再試行",
+        en: 'Request sequentially and retry on failure',
+    },
+    'panel.request.parallel': {
+        'zh-CN': "同時に複数回リクエスト",
+        en: 'Send multiple requests in parallel',
+    },
+    'panel.request.onceThenParallel': {
+        'zh-CN': '先请求一次，失败后再同时请求多次',
+        en: 'Request once, then retry in parallel on failure',
+    },
+    'panel.request.count': {
+        'zh-CN': "リクエスト回数",
+        en: 'Number of requests',
+    },
+    'panel.request.auto': {
+        'zh-CN': '自动请求',
+        en: 'Automatic requests',
+    },
+    'panel.request.autoHelp': {
+        'zh-CN':
+            "关闭后，AI 回复完成时不会自动触发额外模型解析；你需要主动点击“追加モデル解析を再試行”按钮，才会执行解析并添加状态栏占位符 &lt;StatusPlaceHolderImpl/&gt;。",
+        en: 'When disabled, extra-model parsing is not triggered automatically after the AI finishes replying. Click “Retry extra-model parsing” to run it and add the status-bar placeholder &lt;StatusPlaceHolderImpl/&gt;.',
+    },
+    'panel.request.batchWarning': {
+        'zh-CN':
+            '请升级酒馆助手到 4.4.3 或更高版本，否则批量请求功能可能让预设的“流式传输”设置失效',
+        en: "Upgrade Tavern Helper to version 4.4.3 or later. Otherwise, batch requests may override the preset's streaming setting.",
+    },
+    'panel.request.batchWarningTitle': {
+        'zh-CN': '[MVU]批量请求可能有问题',
+        en: '[MVU] Batch requests may not work correctly',
+    },
+    'panel.source.section': {
+        'zh-CN': "モデル出典",
+        en: 'Model source',
+    },
+    'panel.source.sameAsConnection': {
+        'zh-CN': "プラグと同じ",
+        en: 'Same as current connection',
+    },
+    'panel.source.custom': {
+        'zh-CN': "カスタム",
+        en: 'Custom',
+    },
+    'panel.source.more': {
+        'zh-CN': "その他",
+        en: 'More',
+    },
+    'panel.source.profile.section': {
+        'zh-CN': 'API 方案',
+        en: 'API profiles',
+    },
+    'panel.source.profile.current': {
+        'zh-CN': '当前方案',
+        en: 'Current profile',
+    },
+    'panel.source.profile.ariaLabel': {
+        'zh-CN': 'API 方案',
+        en: 'API profile',
+    },
+    'panel.source.profile.manual': {
+        'zh-CN': '（手动编辑，未绑定方案）',
+        en: '(Manual settings, not bound to a profile)',
+    },
+    'panel.source.profile.newName': {
+        'zh-CN': '新方案名称',
+        en: 'New profile name',
+    },
+    'panel.source.profile.save': {
+        'zh-CN': '保存当前方案',
+        en: 'Save current profile',
+    },
+    'panel.source.profile.saveAs': {
+        'zh-CN': '另存为新方案',
+        en: 'Save as new profile',
+    },
+    'panel.source.profile.delete': {
+        'zh-CN': '删除当前方案',
+        en: 'Delete current profile',
+    },
+    'panel.source.profile.backendCustom': {
+        'zh-CN': "カスタム API",
+        en: 'Custom API',
+    },
+    'panel.source.profile.backendPi': {
+        'zh-CN': "その他",
+        en: 'More',
+    },
+    'panel.source.apiAddress': {
+        'zh-CN': 'API 地址',
+        en: 'API address',
+    },
+    'panel.source.apiKey': {
+        'zh-CN': "API APIキー",
+        en: 'API key',
+    },
+    'panel.source.apiKeyPlaceholder': {
+        'zh-CN': '留空表示无需密钥',
+        en: 'Leave blank when no key is required',
+    },
+    'panel.source.modelName': {
+        'zh-CN': "モデル名",
+        en: 'Model name',
+    },
+    // “更多”来源的连接、协议能力和认证界面文案；底层 Pi 标识不作为产品名称展示。
+    'panel.source.pi.provider': {
+        'zh-CN': '来源',
+        en: 'Provider',
+    },
+    'panel.source.pi.endpoint': {
+        'zh-CN': 'API 基础地址',
+        en: 'API base URL',
+    },
+    'panel.source.pi.endpointDefault': {
+        'zh-CN': '留空使用默认地址：{endpoint}',
+        en: 'Leave blank to use the default: {endpoint}',
+    },
+    'panel.source.pi.endpointPlaceholder': {
+        'zh-CN': '请输入 API 基础地址',
+        en: 'Enter an API base URL',
+    },
+    'panel.source.pi.endpointHelp': {
+        'zh-CN':
+            '填写服务商提供的 API 地址，留空使用默认地址。也可以直接粘贴完整的聊天或 Responses 接口地址，MVU 会自动处理末尾路径。',
+        en: 'Enter the API URL supplied by your provider, or leave it blank to use the default. You can also paste a full chat or Responses URL; MVU adjusts its ending automatically.',
+    },
+    'panel.source.pi.proxy.use': {
+        'zh-CN': '使用 Proxy',
+        en: 'Use Proxy',
+    },
+    'panel.source.pi.proxy.help': {
+        'zh-CN':
+            '如果获取模型列表或生成请求因 CORS（浏览器跨域限制）失败，可以尝试勾选，通过 SillyTavern 转发请求。需要先在 SillyTavern 中开启 Proxy。开启这个功能后，任意前端脚本都可以无障碍地访问任意站点，请在了解相关的风险后决定是否打开这个功能。',
+        en: 'If fetching models or generating a response fails because of CORS (browser cross-origin restrictions), try enabling this to forward requests through SillyTavern. Proxy must also be enabled in SillyTavern. Once enabled, any frontend script can freely access any website. Decide whether to enable this feature only after understanding the risks.',
+    },
+    'panel.source.pi.proxy.notEnabled': {
+        'zh-CN': '当前来源需要 Proxy，但 SillyTavern 的 Proxy 未开启或无法连接。',
+        en: 'This provider needs Proxy, but SillyTavern Proxy is disabled or unavailable.',
+    },
+    'panel.source.pi.proxy.notEnabledHelp': {
+        'zh-CN':
+            '打开 SillyTavern 的 config.yaml，将 enableCorsProxy 设为 true，保存后重启 SillyTavern。如果酒馆由他人托管，请联系管理员开启。开启这个功能后，任意前端脚本都可以无障碍地访问任意站点，请在了解相关的风险后决定是否打开这个功能。',
+        en: 'Open SillyTavern config.yaml, set enableCorsProxy to true, save, and restart SillyTavern. If someone else hosts your server, ask its administrator to enable it. Once enabled, any frontend script can freely access any website. Decide whether to enable this feature only after understanding the risks.',
+    },
+    'panel.source.pi.model': {
+        'zh-CN': '模型',
+        en: 'Model',
+    },
+    'panel.source.pi.catalogModel': {
+        'zh-CN': '模型目录',
+        en: 'Model catalog',
+    },
+    'panel.source.pi.customModel': {
+        'zh-CN': '（手动填写模型）',
+        en: '(Enter a model manually)',
+    },
+    'panel.source.pi.api.openaiResponses': {
+        'zh-CN': 'OpenAI Responses',
+        en: 'OpenAI Responses',
+    },
+    'panel.source.pi.api.openaiCompletions': {
+        'zh-CN': 'OpenAI Chat Completions',
+        en: 'OpenAI Chat Completions',
+    },
+    'panel.source.pi.api.openaiCodexResponses': {
+        'zh-CN': 'OpenAI Codex Responses',
+        en: 'OpenAI Codex Responses',
+    },
+    'panel.source.pi.api.anthropicMessages': {
+        'zh-CN': 'Anthropic Messages',
+        en: 'Anthropic Messages',
+    },
+    'panel.source.pi.api.googleGenerativeAi': {
+        'zh-CN': 'Google Generative AI',
+        en: 'Google Generative AI',
+    },
+    'panel.source.pi.api.mistralConversations': {
+        'zh-CN': 'Mistral Conversations',
+        en: 'Mistral Conversations',
+    },
+    'panel.source.pi.auth.apiKey': {
+        'zh-CN': 'API Key',
+        en: 'API key',
+    },
+    'panel.source.pi.capabilities': {
+        'zh-CN': '可尝试的功能：{capabilities}。具体是否可用，以你使用的模型和服务商为准。',
+        en: 'Features you can try: {capabilities}. Availability depends on your model and provider.',
+    },
+    'panel.source.pi.capability.tools': {
+        'zh-CN': "ツール呼び出し",
+        en: 'tools',
+    },
+    'panel.source.pi.capability.images': {
+        'zh-CN': '读取图片',
+        en: 'Read images',
+    },
+    'panel.source.pi.capability.structured': {
+        'zh-CN': "フォーマット出力",
+        en: 'Structured output',
+    },
+    'panel.source.pi.thinkingLevel': {
+        'zh-CN': '思考等级',
+        en: 'Thinking level',
+    },
+    'panel.source.pi.thinkingLevelHelp': {
+        'zh-CN':
+            '默认保持现有请求行为；其他等级按模型能力映射，部分模型无法完全关闭思考。未知模型按协议转换所选等级；OpenAI/Mistral 的极高、最高会原样尝试，Google/预算式思考仍按协议映射。Anthropic 开启思考时不支持强制工具调用，旧模型至少需要 2048 回复 token。自定义请求体覆盖仍优先。',
+        en: 'Default preserves existing requests. Other levels are mapped to model capabilities; some models cannot fully disable thinking. Unknown models use protocol-specific mappings: OpenAI/Mistral attempt xhigh/max unchanged, while Google and budget-based thinking use protocol mappings. Anthropic thinking cannot force tool calls; older models need at least 2048 reply tokens. Custom body overrides take precedence.',
+    },
+    'panel.source.pi.thinking.default': {
+        'zh-CN': "既定（保持原行为）",
+        en: 'Default (unchanged behavior)',
+    },
+    'panel.source.pi.thinking.off': {
+        'zh-CN': '关闭 / 最低',
+        en: 'Off / minimum',
+    },
+    'panel.source.pi.thinking.minimal': {
+        'zh-CN': '极低',
+        en: 'Minimal',
+    },
+    'panel.source.pi.thinking.low': {
+        'zh-CN': '低',
+        en: 'Low',
+    },
+    'panel.source.pi.thinking.medium': {
+        'zh-CN': '中',
+        en: 'Medium',
+    },
+    'panel.source.pi.thinking.high': {
+        'zh-CN': '高',
+        en: 'High',
+    },
+    'panel.source.pi.thinking.xhigh': {
+        'zh-CN': '极高',
+        en: 'Extra high',
+    },
+    'panel.source.pi.thinking.max': {
+        'zh-CN': '最高',
+        en: 'Maximum',
+    },
+    'panel.source.pi.contextWindow': {
+        'zh-CN': '上下文窗口',
+        en: 'Context window',
+    },
+    'panel.source.pi.contextWindowCatalog': {
+        'zh-CN':
+            '模型一次能读取和生成的总长度，单位为 token。已自动填入 {value}；如果服务商给出的限制不同，可手动修改，清空后恢复自动值。',
+        en: 'The total length the model can read and generate, in tokens. Automatically set to {value}. Edit it if your provider gives a different limit; clear it to restore the automatic value.',
+    },
+    'panel.source.pi.contextWindowOverride': {
+        'zh-CN':
+            '模型一次能读取和生成的总长度，单位为 token。当前使用你填写的值；清空后会尝试自动填写已知模型的限制。',
+        en: 'The total length the model can read and generate, in tokens. Using your entered value; clear it to try the known model limit.',
+    },
+    'panel.source.pi.contextWindowRequired': {
+        'zh-CN': '请输入正整数上下文窗口；模型目录未提供该值时必须手动填写。',
+        en: 'Enter a positive integer context window. It is required when the model catalog has no value.',
+    },
+    'panel.source.pi.error.unknownProvider': {
+        'zh-CN': "“その他”中的未知来源“{provider}”；请重新选择来源。",
+        en: 'Unknown provider "{provider}" under More. Select a provider again.',
+    },
+    'panel.source.pi.error.unsupportedApi': {
+        'zh-CN': '已保存的来源“{provider}”不支持接口“{api}”，请重新选择来源。',
+        en: 'The saved provider "{provider}" does not support API "{api}". Select a provider again.',
+    },
+    'panel.source.pi.error.unsupportedAuth': {
+        'zh-CN': '已保存的来源“{provider}”不支持认证方式“{auth}”，请重新选择来源。',
+        en: 'The saved provider "{provider}" does not support authentication type "{auth}". Select a provider again.',
+    },
+    'panel.source.pi.error.unsupportedEndpoint': {
+        'zh-CN': '当前来源不支持自定义 API 地址，请重新选择来源或切换 API 方案。',
+        en: 'This provider does not support a custom API URL. Select a provider again or switch API profiles.',
+    },
+    'panel.source.pi.featureDisabled': {
+        'zh-CN':
+            "此构建已关闭“その他”モデル出典。已保存的“その他”配置仍会保留；请选择“プラグと同じ”或“カスタム”。",
+        en: 'The More model source is disabled in this build. Saved More-source settings are preserved; select Same as current connection or Custom.',
+    },
+    'panel.source.pi.maxTokensPositive': {
+        'zh-CN': '最大回复 token 必须是正整数。',
+        en: 'Maximum response tokens must be a positive integer.',
+    },
+    'panel.source.pi.maxTokensExceedContext': {
+        'zh-CN': '最大回复 token 不能大于上下文窗口。',
+        en: 'Maximum response tokens cannot exceed the context window.',
+    },
+    'panel.source.pi.customHeaders': {
+        'zh-CN': '自定义请求头',
+        en: 'Custom request headers',
+    },
+    'panel.source.pi.customHeadersHelp': {
+        'zh-CN':
+            '仅在服务商要求额外请求头时填写，格式为 YAML 或 JSON，例如 X-App: MVU。留空即可；API 密钥请填在上方的密钥栏。',
+        en: 'Fill this in only if your provider requires extra headers. Use YAML or JSON, for example X-App: MVU. Otherwise leave it blank. Enter your API key in the key field above.',
+    },
+    'panel.source.pi.customOverridesSwitchHelp': {
+        'zh-CN':
+            '下方的自定义请求头、附加字段和排除字段会随 API 方案保存。手动切换来源或 API 地址时会清空这三项；切换方案会恢复该方案保存的内容。',
+        en: 'Custom headers, additional fields, and excluded fields below are saved with the API profile. Manually changing the provider or API URL clears these three fields; switching profiles restores their saved values.',
+    },
+    'panel.source.pi.customIncludeBody': {
+        'zh-CN': '请求体附加字段',
+        en: 'Additional request body fields',
+    },
+    'panel.source.pi.customIncludeBodyHelp': {
+        'zh-CN':
+            "服务商要求额外参数时在这里填写，使用 YAML 或 JSON，例如 seed: 123。同名参数会采用这里的值。Google 参数请放在 config 下。不需要时留空；APIキー、模型和流式开关请使用对应选项。",
+        en: 'Add parameters required by your provider as YAML or JSON, for example seed: 123. These values replace matching parameters. Put Google parameters under config. Leave blank when unnecessary; use the dedicated controls for keys, models, and streaming.',
+    },
+    'panel.source.pi.customExcludeBody': {
+        'zh-CN': '请求体排除字段',
+        en: 'Excluded request body fields',
+    },
+    'panel.source.pi.customExcludeBodyHelp': {
+        'zh-CN':
+            '如果服务商提示某个参数不被支持，可在这里填写参数名，使请求不再携带它。多个名称用换行或逗号分隔，也支持 YAML 列表。Google 参数写为 config.&lt;参数名&gt;。不需要时留空。',
+        en: 'If your provider rejects a parameter, enter its name here to leave it out of requests. Separate names with newlines or commas, or use a YAML list. For Google, use config.&lt;parameter&gt;. Otherwise leave blank.',
+    },
+    'panel.source.pi.clearCustomField': {
+        'zh-CN': '清空',
+        en: 'Clear',
+    },
+    'panel.source.pi.oauth.section': {
+        'zh-CN': 'OAuth 登录',
+        en: 'OAuth login',
+    },
+    'panel.source.pi.oauth.status': {
+        'zh-CN': '状态',
+        en: 'Status',
+    },
+    'panel.source.pi.oauth.checking': {
+        'zh-CN': '检查中…',
+        en: 'Checking…',
+    },
+    'panel.source.pi.oauth.loggedIn': {
+        'zh-CN': '已登录',
+        en: 'Signed in',
+    },
+    'panel.source.pi.oauth.loggedOut': {
+        'zh-CN': '未登录',
+        en: 'Not signed in',
+    },
+    'panel.source.pi.oauth.expiresAt': {
+        'zh-CN': '凭据有效期：{time}',
+        en: 'Credential expiry: {time}',
+    },
+    'panel.source.pi.oauth.login': {
+        'zh-CN': '登录',
+        en: 'Sign in',
+    },
+    'panel.source.pi.oauth.refresh': {
+        'zh-CN': '刷新凭证',
+        en: 'Refresh credentials',
+    },
+    'panel.source.pi.oauth.refreshing': {
+        'zh-CN': '正在刷新凭证…',
+        en: 'Refreshing credentials…',
+    },
+    'panel.source.pi.oauth.refreshSucceeded': {
+        'zh-CN': '凭证已刷新。',
+        en: 'Credentials refreshed.',
+    },
+    'panel.source.pi.oauth.cancel': {
+        'zh-CN': '取消登录',
+        en: 'Cancel sign-in',
+    },
+    'panel.source.pi.oauth.logout': {
+        'zh-CN': '登出',
+        en: 'Sign out',
+    },
+    'panel.source.pi.oauth.authorizationUrl': {
+        'zh-CN': '授权链接',
+        en: 'Authorization URL',
+    },
+    'panel.source.pi.oauth.openAuthorization': {
+        'zh-CN': '打开授权页',
+        en: 'Open authorization page',
+    },
+    'panel.source.pi.oauth.copyAuthorization': {
+        'zh-CN': '复制授权链接',
+        en: 'Copy authorization URL',
+    },
+    'panel.source.pi.oauth.copySucceeded': {
+        'zh-CN': '已复制授权链接',
+        en: 'Authorization URL copied',
+    },
+    'panel.source.pi.oauth.copyFailed': {
+        'zh-CN': '无法复制授权链接，请手动选择并复制。',
+        en: 'Could not copy the authorization URL. Select and copy it manually.',
+    },
+    'panel.source.pi.oauth.callbackUrl': {
+        'zh-CN': '回调链接',
+        en: 'Callback URL',
+    },
+    'panel.source.pi.oauth.callbackHelp': {
+        'zh-CN':
+            '完成授权后，如果跳转到的页面打不开，不影响登录。请复制浏览器地址栏中以 127.0.0.1 或 localhost 开头的完整链接，粘贴到这里，再点击“完成登录”。',
+        en: 'After authorization, the redirected page may fail to open; you can still finish signing in. Copy the full URL starting with 127.0.0.1 or localhost from the address bar, paste it here, and click Complete sign-in.',
+    },
+    'panel.source.pi.oauth.complete': {
+        'zh-CN': '完成登录',
+        en: 'Complete sign-in',
+    },
+    'panel.source.pi.oauth.preparing': {
+        'zh-CN': '正在准备安全授权链接…',
+        en: 'Preparing a secure authorization URL…',
+    },
+    'panel.source.pi.oauth.waitingCallback': {
+        'zh-CN': '请在授权页完成登录，然后粘贴完整回调链接。',
+        en: 'Finish signing in on the authorization page, then paste the complete callback URL.',
+    },
+    'panel.source.pi.oauth.exchanging': {
+        'zh-CN': '正在验证回调并交换凭据…',
+        en: 'Validating the callback and exchanging credentials…',
+    },
+    'panel.source.pi.oauth.loginSucceeded': {
+        'zh-CN': 'OAuth 登录成功。',
+        en: 'OAuth sign-in succeeded.',
+    },
+    'panel.source.pi.oauth.logoutSucceeded': {
+        'zh-CN': '已登出。',
+        en: 'Signed out.',
+    },
+    'panel.source.pi.oauth.logoutConfirm': {
+        'zh-CN': '确定在当前配置中登出 {provider} 吗？之后可以登录其他账号。',
+        en: 'Sign out of {provider} for the current configuration? You can then sign in with another account.',
+    },
+    'panel.source.pi.oauth.failureTitle': {
+        'zh-CN': '[MVU]OAuth 操作失败',
+        en: '[MVU] OAuth operation failed',
+    },
+    'panel.source.advanced': {
+        'zh-CN': '高级参数',
+        en: 'Advanced parameters',
+    },
+    'panel.source.unsupportedAdvanced': {
+        'zh-CN': '⚠️酒馆助手版本过低，不支持以下配置',
+        en: '⚠️ Your Tavern Helper version is too old to support the settings below',
+    },
+    'panel.source.maxTokens': {
+        'zh-CN': '最大回复 token',
+        en: 'Maximum response tokens',
+    },
+    'panel.source.chatHistory': {
+        'zh-CN': '聊天历史条数',
+        en: 'Chat history entries',
+    },
+    'panel.source.temperature': {
+        'zh-CN': '温度',
+        en: 'Temperature',
+    },
+    'panel.source.frequencyPenalty': {
+        'zh-CN': "頻度ペナルティ",
+        en: 'Frequency penalty',
+    },
+    'panel.source.presencePenalty': {
+        'zh-CN': "存在ペナルティ",
+        en: 'Presence penalty',
+    },
+    'panel.source.topP': {
+        'zh-CN': 'Top P',
+        en: 'Top P',
+    },
+    'panel.source.topK': {
+        'zh-CN': 'Top K',
+        en: 'Top K',
+    },
+    'panel.source.switchDirty': {
+        'zh-CN': '当前方案有未保存的修改，切换将丢弃这些修改。是否继续？',
+        en: 'The current profile has unsaved changes. Switching will discard them. Continue?',
+    },
+    'panel.source.continue': {
+        'zh-CN': '继续',
+        en: 'Continue',
+    },
+    'panel.source.discardChanges': {
+        'zh-CN': '丢弃修改',
+        en: 'Discard changes',
+    },
+    'panel.source.delete': {
+        'zh-CN': '删除',
+        en: 'Delete',
+    },
+    'panel.source.deleteDirty': {
+        'zh-CN': '当前方案“{name}”有未保存的修改，删除将丢弃这些修改。是否继续？',
+        en: 'Profile “{name}” has unsaved changes. Deleting it will discard them. Continue?',
+    },
+    'panel.source.deleteConfirm': {
+        'zh-CN': '确定删除 API 方案“{name}”吗？此操作不可撤销。',
+        en: 'Delete API profile “{name}”? This action cannot be undone.',
+    },
+    'panel.source.profileSaved': {
+        'zh-CN': '已保存 API 方案“{name}”',
+        en: 'Saved API profile “{name}”',
+    },
+    'panel.source.profileSavedAs': {
+        'zh-CN': '已另存为 API 方案“{name}”',
+        en: 'Saved as API profile “{name}”',
+    },
+    'panel.source.profileDeleted': {
+        'zh-CN': '已删除 API 方案“{name}”',
+        en: 'Deleted API profile “{name}”',
+    },
+    'panel.source.enterProfileName': {
+        'zh-CN': '请先输入新方案名称',
+        en: 'Enter a new profile name first',
+    },
+    'panel.source.keepTwoProfiles': {
+        'zh-CN': '至少保留两个 API 方案时才可删除',
+        en: 'At least two API profiles are required before one can be deleted',
+    },
+    'panel.source.switchFailureTitle': {
+        'zh-CN': '[MVU]切换 API 方案失败',
+        en: '[MVU] Failed to switch API profile',
+    },
+    'panel.source.saveFailureTitle': {
+        'zh-CN': '[MVU]保存 API 方案失败',
+        en: '[MVU] Failed to save API profile',
+    },
+    'panel.source.deleteFailureTitle': {
+        'zh-CN': '[MVU]删除 API 方案失败',
+        en: '[MVU] Failed to delete API profile',
+    },
+    'panel.character.titleActive': {
+        'zh-CN': '当前角色卡配置（覆盖中）',
+        en: 'Current character-card settings (overriding)',
+    },
+    'panel.character.titleInactive': {
+        'zh-CN': '当前角色卡配置（未启用）',
+        en: 'Current character-card settings (not enabled)',
+    },
+    'panel.character.worldBook': {
+        'zh-CN': '角色世界书',
+        en: 'Character world book',
+    },
+    'panel.character.reading': {
+        'zh-CN': '正在读取…',
+        en: 'Reading…',
+    },
+    'panel.character.unbound': {
+        'zh-CN': '未绑定',
+        en: 'Not bound',
+    },
+    'panel.character.inherit': {
+        'zh-CN': '跟随用户配置',
+        en: 'Inherit user settings',
+    },
+    'panel.character.extraModelGroup': {
+        'zh-CN': "追加モデル解析",
+        en: 'Extra-model parsing',
+    },
+    'panel.character.autoRequest': {
+        'zh-CN': '自动请求',
+        en: 'Automatic requests',
+    },
+    'panel.character.whitelist': {
+        'zh-CN': '角色卡世界书条目白名单正则',
+        en: 'Character-card world-book entry whitelist regex',
+    },
+    'panel.character.blacklist': {
+        'zh-CN': '角色卡世界书条目黑名单正则',
+        en: 'Character-card world-book entry blacklist regex',
+    },
+    'panel.character.regexInvalid': {
+        'zh-CN': '角色卡配置正则无效：{error}',
+        en: 'Invalid character-card regex: {error}',
+    },
+});

@@ -1,0 +1,7 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/p-retry@4.6.2/index.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+import*as d from"./9303ab6c0cc5e366602c.js";function _(n){return n&&Object.prototype.hasOwnProperty.call(n,"default")?n.default:n}var i={exports:{}},x=_(d),l;function m(){if(l)return i.exports;l=1;const n=x,E=["Failed to fetch","NetworkError when attempting to fetch resource.","The Internet connection appears to be offline.","Network request failed"];class c extends Error{constructor(r){super(),r instanceof Error?(this.originalError=r,{message:r}=r):(this.originalError=new Error(r),this.originalError.stack=this.stack),this.name="AbortError",this.message=r}}const h=(e,r,a)=>{const o=a.retries-(r-1);return e.attemptNumber=r,e.retriesLeft=o,e},y=e=>E.includes(e),f=(e,r)=>new Promise((a,o)=>{r={onFailedAttempt:()=>{},retries:10,...r};const s=n.operation(r);s.attempt(async p=>{try{a(await e(p))}catch(t){if(!(t instanceof Error)){o(new TypeError(`Non-error was thrown: "${t}". You should only throw errors.`));return}if(t instanceof c)s.stop(),o(t.originalError);else if(t instanceof TypeError&&!y(t.message))s.stop(),o(t);else{h(t,p,r);try{await r.onFailedAttempt(t)}catch(w){o(w);return}s.retry(t)||o(s.mainError())}}})});return i.exports=f,i.exports.default=f,i.exports.AbortError=c,i.exports}var u=m(),A=u.AbortError;export{A as AbortError,u as default};

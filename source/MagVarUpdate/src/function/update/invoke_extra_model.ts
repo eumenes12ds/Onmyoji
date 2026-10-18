@@ -1,0 +1,1011 @@
+import {
+    extractFromFormattedOutput,
+    extractFromGenerateToolCallResult,
+    MVU_JSON_PATCH_RESPONSE_SCHEMA,
+    MVU_TOOL_DEFINITION,
+} from '@/function/function_call';
+import { extractCommands } from '@/function/update_variables';
+import { MIN_FUNCTION_CALLING_TAVERN_HELPER_VERSION } from '@/function/is_function_calling_supported';
+import claude_head from '@/prompts/claude_head.txt?raw';
+import claude_tail from '@/prompts/claude_tail.txt?raw';
+import extra_model_task from '@/prompts/extra_model_task.txt?raw';
+import gemini_head from '@/prompts/gemini_head.txt?raw';
+import gemini_tail from '@/prompts/gemini_tail.txt?raw';
+import {
+    buildOtherPresetGenerateConfig,
+    getExtraModelPreset,
+} from '@/function/update/extra_model_preset';
+import {
+    clearExtraModelRequestOverrides,
+    setExtraModelRequestOverrides,
+} from '@/function/request/extra_model_request_override';
+import {
+    registerWorldinfoRequest,
+    withWorldinfoRequestMarker,
+} from '@/function/request/worldinfo_request';
+import {
+    beginPiRequestAttempt,
+    isPiRequestAbortedError,
+    PiRequestAbortedError,
+    stopExtraModelRequestById,
+    stopPiRequestById,
+} from '@/function/update/pi/controller_registry';
+import { localizePiError } from '@/function/update/pi/error_localization';
+import { isPiMultiproviderEnabled } from '@/function/update/pi/feature_flag';
+import {
+    captureGeneratePrompt,
+    captureGenerateRawPrompt,
+    type CapturedPrompt,
+    type PromptCaptureOptions,
+} from '@/function/update/pi/prompt_capture';
+import type { PiExtraModelSettings, PiRuntimePreflight } from '@/function/update/pi/runtime';
+import { tr } from '@/i18n';
+import { useDataStore } from '@/store';
+import { normalizeBaseURL, isJsonPatch } from '@/util';
+import {
+    findUpdateMarkupBlocks,
+    isJsonSafe,
+    parseStructuredUpdate,
+    scanUpdateMarkup,
+} from './structured_update';
+import { literalYamlify, uuidv4 } from '@util/common';
+import { compare } from 'compare-versions';
+import { klona } from 'klona';
+import YAML from 'yaml';
+
+//测试用，为了使首次请求必失败
+let debug_extra_request_counter = 0;
+
+const V4_COMPATIBLE_FORMATTED_OUTPUT = "フォーマット出力(v4互換)";
+const MIN_CUSTOM_API_BODY_TAVERN_HELPER_VERSION = '4.8.13';
+const JSON_OBJECT_CUSTOM_INCLUDE_BODY = Object.freeze({
+    response_format: {
+        type: 'json_object',
+    },
+});
+const DISABLED_THINKING_CUSTOM_INCLUDE_BODY = Object.freeze({
+    thinking: {
+        type: 'disabled',
+    },
+});
+
+type PiRuntimeModule = typeof import('@/function/update/pi/runtime');
+
+let pi_runtime_module: Promise<PiRuntimeModule> | undefined;
+
+/** 按需加载 Pi 运行时，并复用模块加载结果。 */
+function loadPiRuntime(): Promise<PiRuntimeModule> {
+    pi_runtime_module ??= import(/* webpackMode: "eager" */ '@/function/update/pi/runtime');
+    return pi_runtime_module;
+}
+
+/** 创建统一的 Pi 应答协议错误，避免将不合规的模型输出直接展示给用户。 */
+async function createPiProtocolError(): Promise<Error> {
+    const { PiRuntimeError } = await loadPiRuntime();
+    return new PiRuntimeError('protocol', tr('runtime.pi.protocolError'));
+}
+
+function generateRandomHeader(): string {
+    return _.times(4, () => uuidv4().slice(0, 8)).join('\n');
+}
+
+function isV4CompatibleFormattedOutput(): boolean {
+    return useDataStore().settings.追加モデル解析設定.応答フォーマット === V4_COMPATIBLE_FORMATTED_OUTPUT;
+}
+
+function supportsCustomApiBody(): boolean {
+    const version = useDataStore().versions.tavernhelper;
+    return version !== '' && compare(version, MIN_CUSTOM_API_BODY_TAVERN_HELPER_VERSION, '>=');
+}
+
+function supportsRequestScopedTools(): boolean {
+    const version = useDataStore().versions.tavernhelper;
+    return version !== '' && compare(version, MIN_FUNCTION_CALLING_TAVERN_HELPER_VERSION, '>=');
+}
+
+/** 为 Pi 批次复制设置快照，避免面板编辑改变重试语义；旧来源保留原有设置读取方式。 */
+function getRequestSettings(): PiExtraModelSettings {
+    const config = useDataStore().settings.追加モデル解析設定;
+    // Pi 的提示词、应答格式和凭证属于同一批次；当前批次重试时也使用原快照。
+    return config.モデル出典 === "その他" ? klona(config) : config;
+}
+
+/** 在进入重试策略前完成 Pi 配置预检，使固定配置错误只报告一次。 */
+async function preparePiRuntimePreflight(
+    config: PiExtraModelSettings
+): Promise<PiRuntimePreflight | undefined> {
+    if (config.モデル出典 !== "その他") {
+        return undefined;
+    }
+    if (!isPiMultiproviderEnabled()) {
+        throw new Error(tr('runtime.pi.featureDisabled'));
+    }
+
+    const { assertPiRuntimeConfiguration } = await loadPiRuntime();
+    return assertPiRuntimeConfiguration({
+        settings: config,
+        responseFormat: config.応答フォーマット,
+        ...(config.応答フォーマット === "ツール呼び出し"
+            ? { tools: [MVU_TOOL_DEFINITION], toolChoice: 'required' as const }
+            : {}),
+        ...(config.応答フォーマット === "フォーマット出力" ? { jsonSchema: MVU_JSON_PATCH_RESPONSE_SCHEMA } : {}),
+    });
+}
+
+/** 从失败结果中识别应立即终止的 Pi 错误，供串行和并发策略共同使用。 */
+async function getNonRetryablePiError(error: unknown): Promise<unknown | undefined> {
+    const { isNonRetryablePiRuntimeError } = await loadPiRuntime();
+    const errors = error instanceof AggregateError ? error.errors : [error];
+    return errors.find(isNonRetryablePiRuntimeError);
+}
+
+function assertV4CompatibleFormattedOutputUsable() {
+    const store = useDataStore();
+    if (
+        store.settings.追加モデル解析設定.応答フォーマット === V4_COMPATIBLE_FORMATTED_OUTPUT &&
+        store.settings.追加モデル解析設定.モデル出典 === "プラグと同じ"
+    ) {
+        throw new Error(tr('runtime.extraModel.v4RequiresCustomSource'));
+    }
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseCustomIncludeBody(body: unknown): Record<string, unknown> {
+    if (typeof body !== 'string' || body.trim() === '') {
+        return {};
+    }
+
+    const parsed = YAML.parse(body);
+    if (isPlainObject(parsed)) {
+        return parsed;
+    }
+    if (Array.isArray(parsed)) {
+        return Object.assign({}, ...parsed.filter(isPlainObject));
+    }
+    throw new Error(tr('runtime.extraModel.customIncludeBodyInvalid'));
+}
+
+function buildJsonObjectCustomIncludeBody(original_body: unknown): Record<string, unknown> {
+    const store = useDataStore();
+    return {
+        ...parseCustomIncludeBody(original_body),
+        ...JSON_OBJECT_CUSTOM_INCLUDE_BODY,
+        ...(store.settings.追加モデル解析設定.thinking無効
+            ? DISABLED_THINKING_CUSTOM_INCLUDE_BODY
+            : {}),
+    };
+}
+
+async function saveSillyTavernSettings() {
+    const save_settings =
+        typeof builtin === 'undefined' ? undefined : builtin.saveSettings.bind(builtin);
+    if (typeof save_settings !== 'function') {
+        throw new Error(tr('runtime.extraModel.saveSettingsUnavailable'));
+    }
+    await save_settings();
+}
+
+let temporary_json_object_response_format_state: {
+    had_original_body: boolean;
+    original_body: unknown;
+} | null = null;
+
+/** 为旧生成链路临时设置 JSON 对象应答格式，并通过清理机制恢复。 */
+async function setTemporaryJsonObjectResponseFormat() {
+    if (
+        useDataStore().settings.追加モデル解析設定.モデル出典 !== "カスタム" ||
+        !isV4CompatibleFormattedOutput() ||
+        supportsCustomApiBody()
+    ) {
+        temporary_json_object_response_format_state = null;
+        return;
+    }
+
+    assertV4CompatibleFormattedOutputUsable();
+    const oai_settings = SillyTavern.chatCompletionSettings;
+    if (!isPlainObject(oai_settings)) {
+        throw new Error(tr('runtime.extraModel.openAiSettingsUnavailable'));
+    }
+
+    const had_original_body = Object.prototype.hasOwnProperty.call(
+        oai_settings,
+        'custom_include_body'
+    );
+    const original_body = oai_settings.custom_include_body;
+    oai_settings.custom_include_body = YAML.stringify(
+        buildJsonObjectCustomIncludeBody(original_body)
+    ).trimEnd();
+    try {
+        await saveSillyTavernSettings();
+        temporary_json_object_response_format_state = {
+            had_original_body,
+            original_body,
+        };
+    } catch (error) {
+        if (had_original_body) {
+            oai_settings.custom_include_body = original_body;
+        } else {
+            delete oai_settings.custom_include_body;
+        }
+        temporary_json_object_response_format_state = null;
+        throw error;
+    }
+}
+
+async function restoreTemporaryJsonObjectResponseFormat() {
+    if (!temporary_json_object_response_format_state) {
+        return;
+    }
+
+    const oai_settings = SillyTavern.chatCompletionSettings;
+    if (!isPlainObject(oai_settings)) {
+        throw new Error(tr('runtime.extraModel.openAiSettingsRestoreUnavailable'));
+    }
+
+    const { had_original_body, original_body } = temporary_json_object_response_format_state;
+    temporary_json_object_response_format_state = null;
+    if (had_original_body) {
+        oai_settings.custom_include_body = original_body;
+    } else {
+        delete oai_settings.custom_include_body;
+    }
+    await saveSillyTavernSettings();
+}
+
+/** 将额外解析接入酒馆生成状态，协调发送按钮、停止按钮和生命周期事件。 */
+async function setExtraAnalysisStates(is_pi_request = false) {
+    const store = useDataStore();
+
+    if (store.runtimes.is_during_extra_analysis === true) {
+        //这个函数不应当被嵌套调用，因此直接报错
+        throw new Error('setExtraAnalysisStates() should not be called recursively.');
+    }
+
+    //这里本来也应当初始化macro的，但是因为不知道具体内容，所以延迟到 RequestReply
+    //因为这个操作是幂等的，所以无所谓。
+
+    store.runtimes.is_during_extra_analysis = true;
+    try {
+        if (!is_pi_request) {
+            await setTemporaryJsonObjectResponseFormat();
+        }
+    } catch (error) {
+        store.runtimes.is_during_extra_analysis = false;
+        throw error;
+    }
+}
+
+async function unsetExtraAnalysisStates() {
+    const store = useDataStore();
+
+    SillyTavern.unregisterMacro('lastUserMessage');
+    clearExtraModelRequestOverrides();
+    store.runtimes.is_function_call_enabled = false;
+    try {
+        await restoreTemporaryJsonObjectResponseFormat();
+    } finally {
+        store.runtimes.is_during_extra_analysis = false;
+    }
+}
+
+let is_analysis_in_progress = false;
+
+export interface ExtraModelInvocationOptions {
+    /** 替换内置完整更新任务，保留对已有调用方的兼容。 */
+    task?: string;
+    /** 在选定任务末尾追加约束；未指定 task 时保留内置更新任务。 */
+    task_suffix?: string;
+    /** 替换发给额外模型的简短用户提示。 */
+    user_input?: string;
+    /** 接管应答格式提取后的文本校验，替代默认更新块解析；返回接受的文本，抛错使尝试失败。 */
+    validate_result?: (result: string) => string | Promise<string>;
+}
+
+/**
+ * 根据串行或并发策略调用额外模型，统一管理请求状态、重试和停止操作。
+ * Pi 设置预检与请求快照在策略开始前完成，取消及不可重试错误会终止后续尝试。
+ * @param options 任务及用户输入覆盖项；结果校验器可通过抛错让本次尝试进入失败处理。
+ * @returns 首个被接受的更新块；正在解析、策略接收到手动取消或旧来源尝试耗尽时返回 null。
+ * @throws Pi 预检失败、不可重试错误或 Pi 尝试耗尽后保留的最后一次错误。
+ */
+export async function invokeExtraModelWithStrategy(
+    options: ExtraModelInvocationOptions = {}
+): Promise<string | null> {
+    const batch_id = generateRandomHeader();
+    if (is_analysis_in_progress) {
+        return null;
+    }
+    try {
+        is_analysis_in_progress = true;
+        const store = useDataStore();
+        const request_settings = getRequestSettings();
+        const pi_preflight = await preparePiRuntimePreflight(request_settings);
+        let last_pi_error: unknown;
+        let did_abort_pi_request = false;
+
+        debug_extra_request_counter = 0;
+
+        /** 执行并记录一次额外模型尝试，使错误处理和活动请求清理使用同一请求编号。 */
+        const recordedInvoke = async (generation_id?: string, signal?: AbortSignal) => {
+            try {
+                return await invokeExtraModel(
+                    generation_id,
+                    batch_id,
+                    pi_preflight,
+                    request_settings,
+                    signal,
+                    options
+                );
+            } catch (e) {
+                if (signal?.aborted && !pi_preflight) throw e;
+                const localized_error = localizePiError(e);
+                console.error(localized_error);
+                if (pi_preflight) {
+                    if (isPiRequestAbortedError(localized_error)) {
+                        did_abort_pi_request = true;
+                    } else {
+                        last_pi_error = localized_error;
+                    }
+                }
+                throw localized_error;
+            }
+        };
+        /** 尝试耗尽后保留 Pi 的具体失败原因；旧来源继续使用空结果表示失败。 */
+        const throwLastPiErrorOrReturnNull = (): null => {
+            if (pi_preflight && last_pi_error !== undefined) {
+                throw last_pi_error;
+            }
+            return null;
+        };
+        /** 封装单次串行尝试，区分正常失败、主动取消和不可重试的 Pi 错误。 */
+        const safeInvoke = async (): Promise<{
+            result: string | null;
+            is_manual_canceled: boolean;
+        }> => {
+            let is_manual_canceled = false;
+            let did_set_extra_analysis_states = false;
+            try {
+                await setExtraAnalysisStates(pi_preflight !== undefined);
+                did_set_extra_analysis_states = true;
+                const generation_id = pi_preflight ? uuidv4() : undefined;
+                return {
+                    result: await recordedInvoke(generation_id),
+                    is_manual_canceled: false,
+                };
+            } catch (e) {
+                /** 已经记录, 忽略 */
+                if (e === 'Clicked stop button' || isPiRequestAbortedError(e)) {
+                    is_manual_canceled = true;
+                } else if (pi_preflight && (await getNonRetryablePiError(e)) !== undefined) {
+                    throw e;
+                }
+            } finally {
+                if (did_set_extra_analysis_states) {
+                    await unsetExtraAnalysisStates();
+                }
+            }
+            return { result: null, is_manual_canceled: is_manual_canceled };
+        };
+        /** 协调同批并发尝试，接收有效结果并停止其余请求；致命错误立即结束整批执行。 */
+        const concurrentInvoke = async (times: number) => {
+            const uuids = _.times(times, uuidv4);
+            const controller = new AbortController();
+            let attempts: Promise<string>[] = [];
+            let did_set_extra_analysis_states = false;
+            try {
+                await setExtraAnalysisStates(pi_preflight !== undefined);
+                did_set_extra_analysis_states = true;
+                attempts = uuids.map(id => recordedInvoke(id, controller.signal));
+                //在函数调用的模式下，允许接受 **任意** 有效的函数结果，因此被允许被覆盖。
+                return await Promise.any(attempts);
+            } catch (e) {
+                const non_retryable_error = pi_preflight
+                    ? await getNonRetryablePiError(e)
+                    : undefined;
+                if (non_retryable_error !== undefined) {
+                    throw non_retryable_error;
+                }
+                if (did_abort_pi_request) {
+                    return null;
+                }
+                if (pi_preflight && last_pi_error !== undefined) {
+                    throw last_pi_error;
+                }
+            } finally {
+                // 先取消仍在等待世界书的调用，再停止助手和 Pi 中已启动的生成。
+                controller.abort();
+                uuids.forEach(generation_id => stopExtraModelRequestById(generation_id));
+                await Promise.allSettled(attempts);
+                if (did_set_extra_analysis_states) {
+                    await unsetExtraAnalysisStates();
+                }
+            }
+            return null;
+        };
+
+        switch (request_settings.リクエスト方式) {
+            case "順番にリクエストし、失敗したら再試行":
+                for (let i = 0; i < request_settings.リクエスト回数; i++) {
+                    if (store.settings.通知.追加モデル解析中) {
+                        toastr.info(
+                            i === 0
+                                ? tr('runtime.extraModel.requesting')
+                                : tr('runtime.extraModel.retrying', {
+                                      attempt: i,
+                                      total: request_settings.リクエスト回数 - 1,
+                                  }),
+                            tr('runtime.extraModel.updateInProgressTitle')
+                        );
+                    }
+                    const { result, is_manual_canceled } = await safeInvoke();
+                    if (result !== null) {
+                        return result;
+                    }
+                    if (is_manual_canceled) {
+                        //因为手动取消了，不再进行重试。
+                        return null;
+                    }
+                }
+                return throwLastPiErrorOrReturnNull();
+            case "同時に複数回リクエスト":
+                if (store.settings.通知.追加モデル解析中) {
+                    toastr.info(
+                        tr('runtime.extraModel.concurrentRequests', {
+                            count: request_settings.リクエスト回数,
+                        }),
+                        tr('runtime.extraModel.updateInProgressTitle')
+                    );
+                }
+                return await concurrentInvoke(request_settings.リクエスト回数);
+            case "最初に1回リクエストし、失敗したら同時に複数回リクエスト":
+                if (store.settings.通知.追加モデル解析中) {
+                    toastr.info(
+                        tr('runtime.extraModel.firstRequest'),
+                        tr('runtime.extraModel.updateInProgressTitle')
+                    );
+                }
+                {
+                    const { result, is_manual_canceled } = await safeInvoke();
+                    if (result !== null) {
+                        return result;
+                    }
+                    if (is_manual_canceled) {
+                        //因为手动取消了，不再进行重试。
+                        return null;
+                    }
+                }
+                if (store.settings.通知.追加モデル解析中) {
+                    toastr.info(
+                        tr('runtime.extraModel.firstRequestFailed', {
+                            count: request_settings.リクエスト回数 - 1,
+                        }),
+                        tr('runtime.extraModel.updateInProgressTitle')
+                    );
+                }
+                return await concurrentInvoke(request_settings.リクエスト回数 - 1);
+            default:
+                return throwLastPiErrorOrReturnNull();
+        }
+    } catch (error) {
+        throw localizePiError(error);
+    } finally {
+        is_analysis_in_progress = false;
+    }
+}
+
+/**
+ * 执行一次额外模型解析，按需建立生成状态，并在结束后恢复界面状态。
+ * @param options 任务、用户输入及可选的应答校验器，与重试策略使用相同校验路径。
+ * @returns 包含有效更新内容的文本块。
+ * @throws 配置、生成或回复解析失败时抛出本地化错误。
+ */
+export async function generateExtraModel(
+    options: ExtraModelInvocationOptions = {}
+): Promise<string | null> {
+    let did_set_extra_analysis_states = false;
+    const request_settings = getRequestSettings();
+    try {
+        await setExtraAnalysisStates(request_settings.モデル出典 === "その他");
+        did_set_extra_analysis_states = true;
+        const pi_preflight = await preparePiRuntimePreflight(request_settings);
+        const generation_id = pi_preflight ? uuidv4() : undefined;
+        return await invokeExtraModel(
+            generation_id,
+            undefined,
+            pi_preflight,
+            request_settings,
+            undefined,
+            options
+        );
+    } catch (error) {
+        throw localizePiError(error);
+    } finally {
+        if (did_set_extra_analysis_states) {
+            await unsetExtraAnalysisStates();
+        }
+    }
+}
+
+/**
+ * 提取、校验并规范化额外模型回复中的变量更新内容。
+ * 发现补丁但校验失败时抛出异常；未识别到有效更新时返回 null，由调用方报告对应来源的错误。
+ * 此处用于未提供自定义校验器的请求，只做格式与 JSON 安全性检查。
+ * @param result 已按应答格式提取的模型回复。
+ * @returns 统一包装的更新块；所有兼容格式都无法识别时返回 null。
+ * @throws {Error} 补丁未闭合或内容非法。
+ */
+export function parseAndValidateExtraModelResult(result: string): string | null {
+    // 1. 定位更新块：忽略思考区中的示例和结构化数据字符串里的字面标签。
+    // 优先选最后一个闭合块；没有闭合块时兼容最后一个未闭合块，没有包装时检查整段回复。
+    const updates = findUpdateMarkupBlocks(result, 'update');
+    const update = updates.filter(block => block.closed).at(-1) ?? updates.at(-1);
+    let body = update ? result.slice(update.contentStart, update.contentEnd) : result;
+    let hasUpdateBody = !!update;
+    // 2. 查找补丁：选中的更新块没有完整 JSONPatch 时，再检查整段回复，
+    // 兼容模型先输出空或无效的更新包装、随后才给出完整补丁的情况。
+    let patches = findUpdateMarkupBlocks(body, 'patch');
+    if (!patches.some(block => block.closed) && update) {
+        patches = findUpdateMarkupBlocks(result, 'patch');
+        if (patches.some(block => block.closed)) {
+            body = result;
+            hasUpdateBody = false;
+        }
+    }
+    if (patches.length) {
+        // 3. 检查补丁边界：任何未闭合补丁都拒绝。
+        if (patches.some(block => !block.closed)) throw new Error('JSONPatch 标签未闭合');
+        // 4. 检查补丁内容：去掉代码围栏后解析 JSON/JSON5/YAML，检查操作数组的基本结构，
+        // 并拒绝 NaN、Infinity、循环引用等无法安全表示为 JSON 的值；不在此执行操作。
+        for (const block of patches) {
+            const value = parseStructuredUpdate(body.slice(block.contentStart, block.contentEnd));
+            if (!isJsonPatch(value) || !isJsonSafe(value))
+                throw new Error('JSONPatch 内容不合法或包含非有限值');
+        }
+        // 5. 统一包装标签，保留补丁原文。补丁来自真实更新块时，保留块内分析和混合旧指令；
+        // 从整段回复兜底提取时只保留补丁，避免把周围的剧情或示例一起交给后续处理。
+        let patchText = '';
+        let cursor = 0;
+        for (const block of patches) {
+            if (hasUpdateBody) patchText += body.slice(cursor, block.start);
+            else if (patchText) patchText += '\n';
+            patchText += `<JSONPatch>${body.slice(block.contentStart, block.contentEnd)}</JSONPatch>`;
+            cursor = block.end;
+        }
+        if (hasUpdateBody) patchText += body.slice(cursor);
+        return `<UpdateVariable>${patchText}</UpdateVariable>`;
+    }
+    // 6. 无补丁标签时兼容旧脚本：仅在排除思考区、字符串和注释后的文本中识别指令。
+    // 返回时保留参数原文，但去掉思考区内容；这里只识别指令形式，不验证执行结果。
+    const scanned = scanUpdateMarkup(body);
+    const visible = scanned.visible;
+    if (
+        /_\.(?:set|insert|assign|remove|unset|delete|add)\s*\([\s\S]*?\)\s*;/.test(
+            scanned.structural
+        )
+    ) {
+        return `<UpdateVariable>${visible}</UpdateVariable>`;
+    }
+    // 7. 无旧指令时尝试无 JSONPatch 标签的结构化输出（裸回复或更新块内的 JSON/JSON5/YAML）：
+    // 解析整个剩余内容（允许代码围栏），
+    // 先检查 JSON 安全性，再提取补丁数组或含 json_patch 等字段的对象，转为统一更新块。
+    let structured;
+    try {
+        structured = parseStructuredUpdate(visible);
+    } catch {
+        // 解析失败时不接受该回复，最终返回 null。
+    }
+    if (structured !== undefined && isJsonSafe(structured)) {
+        const formatted = extractFromFormattedOutput(visible);
+        if (formatted) return formatted;
+    }
+    // 8. 所有格式均未识别成功，交由调用方生成普通来源或 Pi 来源对应的错误。
+    return null;
+}
+
+/**
+ * 执行一次内部解析，登记请求级世界书策略并验证变量更新块；由外层初始化生成状态。
+ * Pi 尝试从世界书读取前登记，取消标记贯穿提示词捕获和实际请求，结束时统一释放。
+ *
+ * @param generation_id 本次生成编号；未指定时创建，与世界书识别和助手调用共用。
+ * @param batch_id 同批请求共享的随机提示词头部。
+ * @param pi_preflight 本次 Pi 请求的预检结果，旧来源不传入。
+ * @param request_settings 世界书过滤与模型调用共用的本次配置快照。
+ * @param signal 并发批次的取消信号，阻止登记较慢的调用在批次结束后启动生成。
+ * @param options 本次调用的任务、输入覆盖及增量结果校验选项。
+ * @returns 自定义校验器接受的文本，或默认解析得到的 UpdateVariable 文本块。
+ */
+async function invokeExtraModel(
+    generation_id?: string,
+    batch_id?: string,
+    pi_preflight?: PiRuntimePreflight,
+    request_settings = useDataStore().settings.追加モデル解析設定,
+    signal?: AbortSignal,
+    options: ExtraModelInvocationOptions = {}
+): Promise<string> {
+    generation_id ??= uuidv4();
+    const pi_attempt =
+        generation_id !== undefined && pi_preflight !== undefined
+            ? beginPiRequestAttempt(generation_id)
+            : undefined;
+    let release_worldinfo_request: (() => void) | undefined;
+    try {
+        release_worldinfo_request = await registerWorldinfoRequest(
+            generation_id,
+            request_settings,
+            pi_attempt?.signal ?? signal
+        );
+        signal?.throwIfAborted();
+        pi_attempt?.signal.throwIfAborted();
+        const result = await requestReply(
+            generation_id,
+            batch_id,
+            pi_preflight,
+            request_settings,
+            pi_attempt?.signal,
+            options
+        );
+
+        if (options.validate_result) {
+            // 执行器能识别命令时保留完整原文，不额外拒绝混合内容或多个更新块。
+            // 无命令时沿用原有格式适配，保持裸 JSON/JSON5/YAML 等已支持的回复仍可用。
+            let update = result;
+            if (extractCommands(substitudeMacros(result)).length === 0) {
+                try {
+                    update = parseAndValidateExtraModelResult(result) ?? result;
+                } catch {
+                    // 格式适配失败仍交给执行器决定，不把适配层变成额外拒绝条件。
+                }
+            }
+            // 显式等待异步校验，使失败进入同一套请求错误记录、取消及重试处理。
+            return await options.validate_result(update);
+        }
+        const update = parseAndValidateExtraModelResult(result);
+        if (update !== null) return update;
+        if (pi_preflight) {
+            throw await createPiProtocolError();
+        }
+        throw new Error(
+            literalYamlify({
+                [tr('runtime.extraModel.updateCommandsInvalid')]: result,
+            })
+        );
+    } catch (error) {
+        if (pi_attempt?.signal.aborted && generation_id !== undefined) {
+            throw new PiRequestAbortedError(generation_id, pi_attempt.signal.reason ?? error);
+        }
+        throw error;
+    } finally {
+        release_worldinfo_request?.();
+        pi_attempt?.release();
+    }
+}
+
+function decode(string: string) {
+    const binary = atob(string);
+    const percent = binary
+        .split('')
+        .map(c => {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join('');
+    return decodeURIComponent(percent);
+}
+
+const decoded_claude_head = decode(claude_head);
+const decoded_gemini_head = decode(gemini_head);
+const decoded_claude_tail = decode(claude_tail);
+const decoded_gemini_tail = decode(gemini_tail);
+const decoded_extra_model_task = decode(extra_model_task);
+
+function isGenerateToolCallResult(
+    result: string | GenerateToolCallResult
+): result is GenerateToolCallResult {
+    return typeof result === 'object' && result !== null && Array.isArray(result.tool_calls);
+}
+
+function normalizeGenerateResult(result: string | GenerateToolCallResult): string {
+    if (!isGenerateToolCallResult(result)) {
+        return result;
+    }
+    return extractFromGenerateToolCallResult(result) ?? result.content;
+}
+
+/** 将捕获完成的提示词交给 Pi，并在加载运行时后再次检查取消状态。 */
+async function runCapturedPiPrompt(
+    capture: CapturedPrompt,
+    preflight: PiRuntimePreflight,
+    signal?: AbortSignal
+): Promise<string | GenerateToolCallResult> {
+    const { runPiRequest } = await loadPiRuntime();
+    signal?.throwIfAborted();
+    return runPiRequest({
+        preflight,
+        messages: capture.messages,
+        generationId: capture.generationId,
+    });
+}
+
+/** 连接捕获完成与停止回调，让 Slash 提示词生成和 Pi 请求共用同一生命周期。 */
+function piPromptCaptureOptions(
+    preflight: PiRuntimePreflight,
+    signal?: AbortSignal
+): PromptCaptureOptions<string | GenerateToolCallResult> {
+    return {
+        onCaptured: capture => runCapturedPiPrompt(capture, preflight, signal),
+        onStopped: stopPiRequestById,
+    };
+}
+
+/** 沿用当前预设构造提示词；Pi 路径只捕获最终提示词，再由选定服务商执行。 */
+async function executeGenerate(
+    config: GenerateConfig,
+    pi_preflight?: PiRuntimePreflight,
+    pi_signal?: AbortSignal
+): Promise<string | GenerateToolCallResult> {
+    if (!pi_preflight) {
+        return generate(config);
+    }
+    const capture = await captureGeneratePrompt(
+        { ...config, should_silence: false },
+        piPromptCaptureOptions(pi_preflight, pi_signal)
+    );
+    if (capture.result === undefined) {
+        throw await createPiProtocolError();
+    }
+    return capture.result;
+}
+
+/** 按显式提示词顺序执行生成；Pi 路径接管捕获结果，不向酒馆主模型重复发送。 */
+async function executeGenerateRaw(
+    config: GenerateRawConfig,
+    pi_preflight?: PiRuntimePreflight,
+    pi_signal?: AbortSignal
+): Promise<string | GenerateToolCallResult> {
+    if (!pi_preflight) {
+        return generateRaw(config);
+    }
+    const capture = await captureGenerateRawPrompt(
+        { ...config, should_silence: false },
+        piPromptCaptureOptions(pi_preflight, pi_signal)
+    );
+    if (capture.result === undefined) {
+        throw await createPiProtocolError();
+    }
+    return capture.result;
+}
+
+/** 按请求的应答格式提取更新内容；严格模式下拒绝不符合格式的返回值。 */
+function normalizeGenerateResultByResponseFormat(
+    result: string | GenerateToolCallResult,
+    response_format: string,
+    fail_closed = false
+): string {
+    if (response_format === "フォーマット出力" || response_format === V4_COMPATIBLE_FORMATTED_OUTPUT) {
+        const formatted = extractFromFormattedOutput(result);
+        if (formatted) {
+            return formatted;
+        }
+        if (fail_closed) {
+            throw new Error(tr('runtime.pi.protocolError'));
+        }
+    }
+    return normalizeGenerateResult(result);
+}
+
+/**
+ * 按本轮设置快照组装预设、世界书、工具及应答格式，并分派到对应生成链路。
+ * Pi 请求必须带有预检结果，不能回退到旧来源发送。
+ * @param generation_id 本次生成编号，用于关联提示词与请求生命周期。
+ * @param batch_id 同批重试共享的随机提示词头部。
+ * @param pi_preflight Pi 运行时预检结果，旧来源不传入。
+ * @param request_settings 本次请求使用的配置快照。
+ * @param pi_signal Pi 请求的取消信号。
+ * @param options 自定义任务、附加约束及用户输入；结果校验由外层策略负责。
+ * @returns 按应答格式提取后的回复文本。
+ * @throws 配置、生成或严格应答格式检查失败时传播异常。
+ */
+async function requestReply(
+    generation_id?: string,
+    batch_id?: string,
+    pi_preflight?: PiRuntimePreflight,
+    request_settings = useDataStore().settings.追加モデル解析設定,
+    pi_signal?: AbortSignal,
+    options: ExtraModelInvocationOptions = {}
+): Promise<string> {
+    const store = useDataStore();
+    const is_pi_request = pi_preflight !== undefined;
+    if (request_settings.モデル出典 === "その他" && !is_pi_request) {
+        throw new Error(tr('runtime.pi.invalidConfig'));
+    }
+    const response_format = request_settings.応答フォーマット;
+    const is_v4_compatible_formatted_output = response_format === V4_COMPATIBLE_FORMATTED_OUTPUT;
+    const supports_request_scoped_tools = !is_pi_request && supportsRequestScopedTools();
+
+    if (!is_pi_request) {
+        assertV4CompatibleFormattedOutputUsable();
+    }
+
+    const config: GenerateRawConfig = withWorldinfoRequestMarker({
+        user_input: options.user_input ?? '遵循<must>指令',
+        max_chat_history: request_settings.max_chat_history,
+        should_stream: request_settings.疑似ストリーミング互換,
+        generation_id,
+    });
+    if (supports_request_scoped_tools) {
+        config.tools = response_format === "ツール呼び出し" ? [MVU_TOOL_DEFINITION] : [];
+    }
+    if (!is_pi_request && request_settings.モデル出典 === "カスタム") {
+        const unset_if_equal = (value: number, expected: number) =>
+            compare(store.versions.tavernhelper, '4.3.9', '>=') && value === expected
+                ? 'unset'
+                : value;
+        config.custom_api = {
+            apiurl: normalizeBaseURL(store.settings.追加モデル解析設定.apiアドレス),
+            key: store.settings.追加モデル解析設定.APIキー,
+            model: store.settings.追加モデル解析設定.モデル名,
+            max_tokens: store.settings.追加モデル解析設定.最大応答トークン数,
+            temperature: unset_if_equal(store.settings.追加モデル解析設定.温度, 1),
+            frequency_penalty: unset_if_equal(store.settings.追加モデル解析設定.頻度ペナルティ, 0),
+            presence_penalty: unset_if_equal(store.settings.追加モデル解析設定.存在ペナルティ, 0),
+            top_p: unset_if_equal(store.settings.追加モデル解析設定.top_p, 1),
+            top_k: unset_if_equal(store.settings.追加モデル解析設定.top_k, 0),
+        };
+        if (is_v4_compatible_formatted_output) {
+            config.custom_api.source = 'custom';
+            if (supportsCustomApiBody()) {
+                const oai_settings = SillyTavern.chatCompletionSettings;
+                if (!isPlainObject(oai_settings)) {
+                    throw new Error(tr('runtime.extraModel.openAiSettingsUnavailable'));
+                }
+                config.custom_api.custom_include_body = buildJsonObjectCustomIncludeBody(
+                    oai_settings.custom_include_body
+                );
+            }
+        }
+    }
+
+    // 先组装任务语义，再附加当前应答格式契约，使自定义校正任务仍遵循统一输出协议。
+    let task = options.task ?? decoded_extra_model_task;
+    if (options.task_suffix) {
+        task += `\n${options.task_suffix}`;
+    }
+    if (response_format === "ツール呼び出し") {
+        task += `\n use \`${MVU_TOOL_DEFINITION.function.name}\` tool to update variables.`;
+        if (!is_pi_request) {
+            store.runtimes.is_function_call_enabled = true;
+            if (!supports_request_scoped_tools) {
+                config.tools = [MVU_TOOL_DEFINITION];
+            }
+            config.tool_choice = 'required';
+        }
+    } else if (response_format === "フォーマット出力") {
+        task +=
+            '\n You are in formatted-output mode. Do not output <UpdateVariable> tags, markdown, or prose. Return only a JSON object matching the provided json_schema: {"analysis":"...","json_patch":[...]}. Put MVU JsonPatch dialect operations in `json_patch`.';
+        if (!is_pi_request) {
+            config.json_schema = MVU_JSON_PATCH_RESPONSE_SCHEMA;
+        }
+    } else if (is_v4_compatible_formatted_output) {
+        task +=
+            '\n You are in formatted-output mode. Do not output <UpdateVariable> tags, markdown, or prose. Return only a JSON object: {"analysis":"...","json_patch":[...]}. Put MVU JsonPatch dialect operations in `json_patch`. Return exactly one JSON object that conforms to this schema:' +
+            JSON.stringify(MVU_JSON_PATCH_RESPONSE_SCHEMA.value);
+    }
+
+    //因为部分预设会用到 {{lastUserMessage}}，因此进行修正。
+    //在重复注册的场合, ST 的行为会是覆盖老的，因此无所谓
+    SillyTavern.registerMacro('lastUserMessage', () => {
+        return task;
+    });
+    if (store.runtimes.debug.最初の追加リクエストを必ず失敗させる && debug_extra_request_counter === 0) {
+        debug_extra_request_counter++;
+        throw 'simulated exception';
+    }
+
+    if (request_settings.脱獄方案 === "現在のプリセットを使用") {
+        clearExtraModelRequestOverrides();
+        const result = await executeGenerate(
+            {
+                ...config,
+                injects: [
+                    {
+                        position: 'in_chat',
+                        depth: 0,
+                        should_scan: false,
+                        role: 'system',
+                        content: task,
+                    },
+                    {
+                        position: 'in_chat',
+                        depth: 2,
+                        should_scan: false,
+                        role: 'system',
+                        content: '<past_observe>',
+                    },
+                    {
+                        position: 'in_chat',
+                        depth: 1,
+                        should_scan: false,
+                        role: 'system',
+                        content: '</past_observe>',
+                    },
+                ],
+            },
+            pi_preflight,
+            pi_signal
+        );
+        return normalizeGenerateResultByResponseFormat(result, response_format, is_pi_request);
+    }
+
+    if (request_settings.脱獄方案 === "その他のプリセットを使用") {
+        const preset = getExtraModelPreset(request_settings.その他プリセット名);
+        const { ordered_prompts, injects, request_overrides } = buildOtherPresetGenerateConfig(
+            preset,
+            task
+        );
+
+        if (!is_pi_request && request_settings.モデル出典 === "プラグと同じ") {
+            setExtraModelRequestOverrides(request_overrides);
+        } else {
+            clearExtraModelRequestOverrides();
+        }
+
+        return normalizeGenerateResultByResponseFormat(
+            await executeGenerateRaw(
+                {
+                    ...config,
+                    injects,
+                    ordered_prompts,
+                },
+                pi_preflight,
+                pi_signal
+            ),
+            response_format,
+            is_pi_request
+        );
+    }
+
+    clearExtraModelRequestOverrides();
+    const model_name = is_pi_request
+        ? request_settings.pi.model
+        : request_settings.モデル出典 === "プラグと同じ"
+          ? SillyTavern.getChatCompletionModel()
+          : store.settings.追加モデル解析設定.モデル名;
+    const is_gemini = model_name.toLowerCase().includes('gemini');
+    const rnd_header_prompts =
+        request_settings.ランダムヘッダー && is_gemini
+            ? [{ role: 'system' as const, content: batch_id ?? generateRandomHeader() }]
+            : [];
+
+    const result = await executeGenerateRaw(
+        {
+            ...config,
+            ordered_prompts: [
+                ...rnd_header_prompts,
+                {
+                    role: 'system',
+                    content: is_gemini ? decoded_gemini_head : decoded_claude_head,
+                },
+                { role: 'system', content: '<additional_information>' },
+                'persona_description',
+                'char_description',
+                'world_info_before',
+                'world_info_after',
+                { role: 'system', content: '</additional_information>' },
+                { role: 'system', content: '<past_observe>' },
+                'chat_history',
+                { role: 'system', content: '</past_observe>' },
+                { role: 'system', content: task },
+                'user_input',
+                {
+                    role: 'system',
+                    content: is_gemini ? decoded_gemini_tail : decoded_claude_tail,
+                },
+            ],
+        },
+        pi_preflight,
+        pi_signal
+    );
+    return normalizeGenerateResultByResponseFormat(result, response_format, is_pi_request);
+}

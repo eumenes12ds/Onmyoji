@@ -1,0 +1,669 @@
+/**
+ * 测试场景：验证主生成和额外解析阶段的世界书条目过滤、来源能力分流，以及全局与角色卡正则的组合和诊断。
+ */
+import { ENTRY_COMMENT_FILTER_LOG_TITLE } from '@/function/request/entry_comment_regex';
+import { filterEntries } from '@/function/request/filter_entries';
+import { useDataStore } from '@/store';
+
+const makeEntry = (world: string, comment: string) => ({ world, comment });
+const cloneEntries = (entries: Array<{ world: string; comment: string }>) =>
+    entries.map(entry => ({ ...entry }));
+
+let mockGetCurrentCharPrimaryLorebook: jest.MockedFunction<() => string | undefined>;
+let mockGetLorebookEntries: jest.MockedFunction<(name: string) => Promise<any[]>>;
+let consoleLogSpy: jest.SpyInstance;
+
+// 世界书过滤：按更新标签和阶段保留内容，再应用有效的来源正则，并记录过滤理由。
+describe('filterEntries', () => {
+    beforeEach(() => {
+        const store = useDataStore();
+        store.settings.更新方式 = '额外模型解析';
+        store.settings.额外模型解析配置.应答格式 = '聊天消息';
+        store.settings.额外模型解析配置.世界书条目白名单正则 = '';
+        store.settings.额外模型解析配置.世界书条目黑名单正则 = '';
+        store.resetCharacterSettings();
+
+        store.runtimes.unsupported_warnings = '';
+        store.runtimes.is_during_extra_analysis = false;
+        store.runtimes.上次世界书条目过滤结果 = [];
+        consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+
+        (globalThis as any).toastr = {
+            warning: jest.fn(),
+            info: jest.fn(),
+            error: jest.fn(),
+        };
+
+        (globalThis as any).SillyTavern.ToolManager.isToolCallingSupported.mockReturnValue(true);
+        (globalThis as any).SillyTavern.chatCompletionSettings.function_calling = true;
+
+        mockGetCurrentCharPrimaryLorebook = (globalThis as any)
+            .getCurrentCharPrimaryLorebook as jest.MockedFunction<() => string | undefined>;
+        if (!mockGetCurrentCharPrimaryLorebook) {
+            mockGetCurrentCharPrimaryLorebook = jest.fn();
+            (globalThis as any).getCurrentCharPrimaryLorebook = mockGetCurrentCharPrimaryLorebook;
+        }
+        mockGetCurrentCharPrimaryLorebook.mockReturnValue('current');
+
+        mockGetLorebookEntries = jest.fn();
+        (globalThis as any).getLorebookEntries = mockGetLorebookEntries;
+    });
+
+    afterEach(() => {
+        useDataStore().runtimes.is_during_extra_analysis = false;
+        consoleLogSpy.mockRestore();
+    });
+
+    // 场景: 更新方式为随AI输出时，不进行任何过滤处理
+    // 入口与能力：随 AI 输出时跳过额外过滤，Pi 工具模式独立于旧工具管理器。
+    test('returns early when update mode is 随AI输出', async () => {
+        const store = useDataStore();
+        store.settings.更新方式 = '随AI输出';
+
+        const lores = {
+            globalLore: [makeEntry('WorldA', '[mvu_update]')],
+            characterLore: [makeEntry('WorldA', '[mvu_plot]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toHaveLength(1);
+        expect(lores.characterLore).toHaveLength(1);
+        expect(store.runtimes.unsupported_warnings).toBe('');
+    });
+
+    // 场景: 需要工具调用但不支持时，直接提示并退出
+    test('returns early when tool calling is required but unsupported', async () => {
+        const store = useDataStore();
+        store.settings.额外模型解析配置.应答格式 = '工具调用';
+
+        (globalThis as any).SillyTavern.ToolManager.isToolCallingSupported.mockReturnValue(false);
+
+        const lores = {
+            globalLore: [makeEntry('WorldA', '[mvu_update]')],
+            characterLore: [makeEntry('WorldA', '[mvu_plot]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toHaveLength(1);
+        expect(lores.characterLore).toHaveLength(1);
+        expect(store.runtimes.unsupported_warnings).toBe('');
+        expect((globalThis as any).toastr.warning).toHaveBeenCalled();
+    });
+
+    test('allows Pi tool calling without Tavern Helper or ToolManager support', async () => {
+        const store = useDataStore();
+        store.settings.额外模型解析配置.应答格式 = '工具调用';
+        store.settings.额外模型解析配置.模型来源 = '更多';
+        store.versions.tavernhelper = '4.8.3';
+
+        (globalThis as any).SillyTavern.ToolManager.isToolCallingSupported.mockReturnValue(false);
+
+        const lores = {
+            globalLore: [makeEntry('WorldA', '[mvu_update]')],
+            characterLore: [makeEntry('WorldA', '[mvu_plot]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toHaveLength(0);
+        expect(lores.characterLore).toHaveLength(1);
+        expect((globalThis as any).toastr.warning).not.toHaveBeenCalled();
+    });
+
+    // 场景: 角色世界书未标记时，额外模型不启用且不处理其他世界书
+    // 条目类型与阶段：主生成、额外解析及纯剧情世界书采用对应保留规则。
+    test('returns early when character lore has no tags', async () => {
+        const store = useDataStore();
+
+        const lores = {
+            globalLore: [
+                makeEntry('WorldA', '[mvu_update]'),
+                makeEntry('WorldB', '[mvu_plot]'),
+                makeEntry('WorldC', 'untagged'),
+            ],
+            characterLore: [makeEntry('WorldChar', 'untagged')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toHaveLength(3);
+        expect(lores.characterLore).toHaveLength(1);
+        expect(store.runtimes.unsupported_warnings).toBe('');
+    });
+
+    // 场景: 主阶段过滤 update-only 条目，并不会移除未支持的世界书
+    test('filters update-only entries and removes unsupported worlds in main phase', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = false;
+        const lores = {
+            globalLore: [
+                makeEntry('WorldA', 'untagged'),
+                makeEntry('WorldB', 'untagged'),
+                makeEntry('WorldC', '[mvu_update]'),
+                makeEntry('WorldD', '[mvu_plot]'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_update]'), makeEntry('WorldA', 'untagged')],
+            chatLore: [makeEntry('WorldB', 'untagged')],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.characterLore).toEqual([makeEntry('WorldA', 'untagged')]);
+        expect(lores.globalLore).toEqual([
+            makeEntry('WorldA', 'untagged'),
+            makeEntry('WorldB', 'untagged'),
+            makeEntry('WorldD', '[mvu_plot]'),
+        ]);
+        expect(lores.chatLore).toHaveLength(1);
+        //即便在主阶段，也会明确检测不支持的世界书，只是不进行删除
+        expect(store.runtimes.unsupported_warnings).toBe('WorldB');
+    });
+
+    // 场景: 非额外解析阶段保留 [mvu_plot]，过滤掉 [mvu_update]
+    test('keeps plot entries and removes update-only entries in main phase', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = false;
+
+        const lores = {
+            globalLore: [
+                makeEntry('WorldD', '[mvu_plot]'),
+                makeEntry('WorldA', '[mvu_update]'),
+                makeEntry('WorldA', 'untagged'),
+                makeEntry('WorldC', '[mvu_plot][mvu_update]'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_plot]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toEqual([
+            makeEntry('WorldD', '[mvu_plot]'),
+            makeEntry('WorldA', 'untagged'),
+            makeEntry('WorldC', '[mvu_plot][mvu_update]'),
+        ]);
+        expect(store.runtimes.unsupported_warnings).toBe('');
+    });
+
+    // 场景: 额外解析阶段，plot-only 世界书的未标记条目应保留
+    test('keeps untagged entries from plot-only worlds during extra analysis', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = true;
+
+        const lores = {
+            globalLore: [
+                makeEntry('PlotWorld', '[mvu_plot]'),
+                makeEntry('PlotWorld', 'untagged'),
+                makeEntry('UntaggedWorld', 'untagged'),
+                makeEntry('PlotWorld2', '[mvu_update]'),
+                makeEntry('PlotWorld2', 'untagged'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_update]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toEqual([
+            makeEntry('PlotWorld', 'untagged'),
+            makeEntry('PlotWorld2', '[mvu_update]'),
+            makeEntry('PlotWorld2', 'untagged'),
+        ]);
+        expect(store.runtimes.unsupported_warnings).toBe('UntaggedWorld');
+    });
+
+    // 名单正则：组合白名单和黑名单，未过滤时不生成多余日志。
+    test('applies whitelist regex to entry comments during extra analysis', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = true;
+        store.settings.额外模型解析配置.世界书条目白名单正则 = '角色A';
+
+        const lores = {
+            globalLore: [
+                makeEntry('PlotWorld', '[mvu_plot]'),
+                makeEntry('PlotWorld', '角色A设定'),
+                makeEntry('PlotWorld', '地点B设定'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_update]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toEqual([makeEntry('PlotWorld', '角色A设定')]);
+        expect(store.runtimes.上次世界书条目过滤结果).toEqual([
+            {
+                lore: 'globalLore',
+                world: 'PlotWorld',
+                comment: '地点B设定',
+                reason: '白名单',
+                sources: ['用户全局配置'],
+            },
+        ]);
+        expect(consoleLogSpy).toHaveBeenCalledWith(ENTRY_COMMENT_FILTER_LOG_TITLE, [
+            {
+                lore: 'globalLore',
+                world: 'PlotWorld',
+                comment: '地点B设定',
+                reason: '白名单',
+                sources: ['用户全局配置'],
+            },
+        ]);
+    });
+
+    test('applies blacklist regex to entry comments during extra analysis', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = true;
+        store.settings.额外模型解析配置.世界书条目黑名单正则 = '禁用|临时';
+
+        const lores = {
+            globalLore: [
+                makeEntry('PlotWorld', '[mvu_plot]'),
+                makeEntry('PlotWorld', '常驻设定'),
+                makeEntry('PlotWorld', '临时设定'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_update]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toEqual([makeEntry('PlotWorld', '常驻设定')]);
+    });
+
+    test('requires whitelist match and blacklist miss when both regexes are configured', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = true;
+        store.settings.额外模型解析配置.世界书条目白名单正则 = '角色|地点';
+        store.settings.额外模型解析配置.世界书条目黑名单正则 = '地点';
+
+        const lores = {
+            globalLore: [
+                makeEntry('PlotWorld', '[mvu_plot]'),
+                makeEntry('PlotWorld', '角色设定'),
+                makeEntry('PlotWorld', '地点设定'),
+                makeEntry('PlotWorld', '物品设定'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_update]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toEqual([makeEntry('PlotWorld', '角色设定')]);
+        expect(store.runtimes.上次世界书条目过滤结果).toEqual([
+            {
+                lore: 'globalLore',
+                world: 'PlotWorld',
+                comment: '地点设定',
+                reason: '黑名单',
+                sources: ['用户全局配置'],
+            },
+            {
+                lore: 'globalLore',
+                world: 'PlotWorld',
+                comment: '物品设定',
+                reason: '白名单',
+                sources: ['用户全局配置'],
+            },
+        ]);
+    });
+
+    test('keeps empty last filter result and does not log when no entry is removed', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = true;
+        store.runtimes.上次世界书条目过滤结果 = [
+            {
+                lore: 'globalLore',
+                world: 'OldWorld',
+                comment: 'old',
+                reason: '黑名单',
+                sources: ['用户全局配置'],
+            },
+        ];
+        store.settings.额外模型解析配置.世界书条目白名单正则 = '角色';
+
+        const lores = {
+            globalLore: [makeEntry('PlotWorld', '[mvu_plot]'), makeEntry('PlotWorld', '角色设定')],
+            characterLore: [makeEntry('WorldA', '[mvu_update]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toEqual([makeEntry('PlotWorld', '角色设定')]);
+        expect(store.runtimes.上次世界书条目过滤结果).toEqual([]);
+        expect(consoleLogSpy).not.toHaveBeenCalledWith(
+            ENTRY_COMMENT_FILTER_LOG_TITLE,
+            expect.anything()
+        );
+    });
+
+    // 正则适用边界：更新条目可豁免，非额外解析阶段不应用，错误正则不打断其他过滤。
+    test('lets update entries bypass comment whitelist and blacklist filters', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = true;
+        store.settings.额外模型解析配置.世界书条目白名单正则 = '角色A';
+        store.settings.额外模型解析配置.世界书条目黑名单正则 = 'mvu_update|禁用';
+
+        const lores = {
+            globalLore: [
+                makeEntry('PlotWorld', '[mvu_plot]'),
+                makeEntry('PlotWorld', '[mvu_update] 禁用'),
+                makeEntry('PlotWorld', '禁用设定'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_update]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toEqual([makeEntry('PlotWorld', '[mvu_update] 禁用')]);
+        expect(lores.characterLore).toEqual([makeEntry('WorldA', '[mvu_update]')]);
+    });
+
+    test('does not apply comment whitelist and blacklist filters outside extra analysis', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = false;
+        store.settings.额外模型解析配置.世界书条目白名单正则 = '保留';
+        store.settings.额外模型解析配置.世界书条目黑名单正则 = '排除';
+
+        const lores = {
+            globalLore: [
+                makeEntry('PlotWorld', '[mvu_plot]'),
+                makeEntry('PlotWorld', '排除设定'),
+                makeEntry('PlotWorld', '其他设定'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_plot]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toEqual([
+            makeEntry('PlotWorld', '[mvu_plot]'),
+            makeEntry('PlotWorld', '排除设定'),
+            makeEntry('PlotWorld', '其他设定'),
+        ]);
+    });
+
+    test('supports JS-style slash regex with flags', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = true;
+        store.settings.额外模型解析配置.世界书条目白名单正则 = '/ALLOWED/i';
+        store.settings.额外模型解析配置.世界书条目黑名单正则 = '/drop/i';
+
+        const lores = {
+            globalLore: [
+                makeEntry('PlotWorld', '[mvu_plot]'),
+                makeEntry('PlotWorld', 'allowed entry'),
+                makeEntry('PlotWorld', 'ALLOWED drop entry'),
+                makeEntry('PlotWorld', 'other entry'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_update]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toEqual([makeEntry('PlotWorld', 'allowed entry')]);
+    });
+
+    test('ignores invalid regexes without interrupting valid filters', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = true;
+        store.settings.额外模型解析配置.世界书条目白名单正则 = '[';
+        store.settings.额外模型解析配置.世界书条目黑名单正则 = 'drop';
+
+        const lores = {
+            globalLore: [
+                makeEntry('PlotWorld', '[mvu_plot]'),
+                makeEntry('PlotWorld', 'keep entry'),
+                makeEntry('PlotWorld', 'drop entry'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_update]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await expect(filterEntries(lores)).resolves.toBeUndefined();
+
+        expect(lores.globalLore).toEqual([makeEntry('PlotWorld', 'keep entry')]);
+        expect((globalThis as any).toastr.warning).toHaveBeenCalledWith(
+            expect.stringContaining('白名单正则无效'),
+            '[MVU]世界书条目过滤正则无效',
+            { timeOut: 5000 }
+        );
+    });
+
+    // 配置来源：合并全局与角色卡规则，并准确记录不匹配或无效正则的来源。
+    test('combines global and character whitelist regexes with OR and records both sources on failure', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = true;
+        store.settings.额外模型解析配置.世界书条目白名单正则 = '全局允许';
+        store.character_settings.draft = {
+            额外模型解析配置: {
+                世界书条目白名单正则: '角色允许',
+            },
+        };
+        store.character_settings.is_valid = true;
+
+        const lores = {
+            globalLore: [
+                makeEntry('PlotWorld', '[mvu_plot]'),
+                makeEntry('PlotWorld', '全局允许条目'),
+                makeEntry('PlotWorld', '角色允许条目'),
+                makeEntry('PlotWorld', '其他条目'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_update]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toEqual([
+            makeEntry('PlotWorld', '全局允许条目'),
+            makeEntry('PlotWorld', '角色允许条目'),
+        ]);
+        expect(store.runtimes.上次世界书条目过滤结果).toEqual([
+            {
+                lore: 'globalLore',
+                world: 'PlotWorld',
+                comment: '其他条目',
+                reason: '白名单',
+                sources: ['用户全局配置', '角色卡配置'],
+            },
+        ]);
+    });
+
+    test('combines global and character blacklist regexes with OR and records only matching sources', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = true;
+        store.settings.额外模型解析配置.世界书条目黑名单正则 = '全局禁用|共同禁用';
+        store.character_settings.draft = {
+            额外模型解析配置: {
+                世界书条目黑名单正则: '角色禁用|共同禁用',
+            },
+        };
+        store.character_settings.is_valid = true;
+
+        const lores = {
+            globalLore: [
+                makeEntry('PlotWorld', '[mvu_plot]'),
+                makeEntry('PlotWorld', '保留条目'),
+                makeEntry('PlotWorld', '全局禁用条目'),
+                makeEntry('PlotWorld', '角色禁用条目'),
+                makeEntry('PlotWorld', '共同禁用条目'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_update]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toEqual([makeEntry('PlotWorld', '保留条目')]);
+        expect(store.runtimes.上次世界书条目过滤结果).toEqual([
+            {
+                lore: 'globalLore',
+                world: 'PlotWorld',
+                comment: '全局禁用条目',
+                reason: '黑名单',
+                sources: ['用户全局配置'],
+            },
+            {
+                lore: 'globalLore',
+                world: 'PlotWorld',
+                comment: '角色禁用条目',
+                reason: '黑名单',
+                sources: ['角色卡配置'],
+            },
+            {
+                lore: 'globalLore',
+                world: 'PlotWorld',
+                comment: '共同禁用条目',
+                reason: '黑名单',
+                sources: ['用户全局配置', '角色卡配置'],
+            },
+        ]);
+    });
+
+    test('ignores character regexes while character settings are invalid', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = true;
+        store.settings.额外模型解析配置.世界书条目白名单正则 = '全局允许';
+        store.character_settings.draft = {
+            额外模型解析配置: {
+                世界书条目白名单正则: '角色允许',
+                世界书条目黑名单正则: '[',
+            },
+        };
+        store.character_settings.is_valid = false;
+
+        const lores = {
+            globalLore: [
+                makeEntry('PlotWorld', '[mvu_plot]'),
+                makeEntry('PlotWorld', '全局允许条目'),
+                makeEntry('PlotWorld', '角色允许条目'),
+            ],
+            characterLore: [makeEntry('WorldA', '[mvu_update]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect(lores.globalLore).toEqual([makeEntry('PlotWorld', '全局允许条目')]);
+        expect((globalThis as any).toastr.warning).not.toHaveBeenCalledWith(
+            expect.stringContaining('角色卡配置'),
+            '[MVU]世界书条目过滤正则无效',
+            expect.anything()
+        );
+    });
+
+    test('identifies the configuration source of each invalid regex warning', async () => {
+        const store = useDataStore();
+
+        store.runtimes.is_during_extra_analysis = true;
+        store.settings.额外模型解析配置.世界书条目白名单正则 = '[';
+        store.character_settings.draft = {
+            额外模型解析配置: {
+                世界书条目黑名单正则: '(',
+            },
+        };
+        store.character_settings.is_valid = true;
+
+        const lores = {
+            globalLore: [makeEntry('PlotWorld', '[mvu_plot]'), makeEntry('PlotWorld', '条目')],
+            characterLore: [makeEntry('WorldA', '[mvu_update]')],
+            chatLore: [],
+            personaLore: [],
+        };
+
+        mockGetLorebookEntries.mockResolvedValue(cloneEntries(lores.characterLore));
+
+        await filterEntries(lores);
+
+        expect((globalThis as any).toastr.warning).toHaveBeenCalledWith(
+            expect.stringContaining('用户全局配置的白名单正则无效'),
+            '[MVU]世界书条目过滤正则无效',
+            { timeOut: 5000 }
+        );
+        expect((globalThis as any).toastr.warning).toHaveBeenCalledWith(
+            expect.stringContaining('角色卡配置的黑名单正则无效'),
+            '[MVU]世界书条目过滤正则无效',
+            { timeOut: 5000 }
+        );
+    });
+});

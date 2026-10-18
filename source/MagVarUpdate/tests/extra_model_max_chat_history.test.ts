@@ -1,0 +1,519 @@
+import {
+    generateExtraModel,
+    invokeExtraModelWithStrategy,
+} from '@/function/update/invoke_extra_model';
+import { MVU_TOOL_DEFINITION } from '@/function/function_call';
+import { MIN_FUNCTION_CALLING_TAVERN_HELPER_VERSION } from '@/function/is_function_calling_supported';
+import { useDataStore } from '@/store';
+import { validateIncrementalRepairAgainstState } from '@/function/update/incremental_repair';
+import { type MvuData } from '@/variable_def';
+import YAML from 'yaml';
+
+const RANDOM_HEADER_PATTERN = /^[0-9a-f]{8}\n[0-9a-f]{8}\n[0-9a-f]{8}\n[0-9a-f]{8}$/i;
+
+describe('extra model max chat history', () => {
+    beforeEach(() => {
+        (globalThis as any).SillyTavern.extensionSettings = {};
+        (globalThis as any).SillyTavern.getChatCompletionModel = jest
+            .fn()
+            .mockReturnValue('claude-test');
+        (globalThis as any).generateRaw = jest
+            .fn()
+            .mockResolvedValue("<UpdateVariable>\n_.set('x', 1);\n</UpdateVariable>");
+    });
+
+    afterEach(() => {
+        delete (globalThis as any).generate;
+        delete (globalThis as any).generateRaw;
+        delete (globalThis as any).SillyTavern.getChatCompletionModel;
+    });
+
+    test('passes configured max_chat_history to extra model generation', async () => {
+        const store = useDataStore();
+        store.settings.额外模型解析配置.max_chat_history = 42;
+
+        await generateExtraModel();
+
+        expect((globalThis as any).generateRaw).toHaveBeenCalledWith(
+            expect.objectContaining({
+                max_chat_history: 42,
+            })
+        );
+    });
+
+    test('allows a request-scoped task and user input override', async () => {
+        await generateExtraModel({
+            task: 'CUSTOM_INCREMENTAL_REPAIR_TASK',
+            user_input: 'CUSTOM_INCREMENTAL_REPAIR_INPUT',
+        });
+
+        const config = (globalThis as any).generateRaw.mock.calls[0][0];
+        expect(config.user_input).toBe('CUSTOM_INCREMENTAL_REPAIR_INPUT');
+        expect(config.ordered_prompts).toContainEqual({
+            role: 'system',
+            content: 'CUSTOM_INCREMENTAL_REPAIR_TASK',
+        });
+    });
+
+    test('appends a request-scoped suffix to the built-in task', async () => {
+        await generateExtraModel({ task_suffix: 'INCREMENTAL_ONLY_SUFFIX' });
+
+        const config = (globalThis as any).generateRaw.mock.calls[0][0];
+        const task_prompt = config.ordered_prompts.find(
+            (prompt: unknown) =>
+                typeof prompt === 'object' &&
+                prompt !== null &&
+                'content' in prompt &&
+                typeof prompt.content === 'string' &&
+                prompt.content.includes('INCREMENTAL_ONLY_SUFFIX')
+        );
+        expect(task_prompt).toBeDefined();
+    });
+
+    test('keeps a request-scoped reminder before the preset tail', async () => {
+        await generateExtraModel({ user_input: 'INCREMENTAL_USER_FOCUS' });
+
+        const config = (globalThis as any).generateRaw.mock.calls[0][0];
+        expect(config.user_input).toBe('INCREMENTAL_USER_FOCUS');
+        expect(config.ordered_prompts.at(-2)).toBe('user_input');
+        expect(config.ordered_prompts.at(-1).content).not.toBe('INCREMENTAL_USER_FOCUS');
+    });
+
+    test('accepts a bare JSONPatch for ordinary extra-model requests', async () => {
+        (globalThis as any).generateRaw.mockResolvedValueOnce(
+            '<JSONPatch>[{"op":"replace","path":"/hp","value":72}]</JSONPatch>'
+        );
+
+        const result = await generateExtraModel();
+
+        expect(result).toBe(
+            '<UpdateVariable><JSONPatch>[{"op":"replace","path":"/hp","value":72}]</JSONPatch></UpdateVariable>'
+        );
+    });
+
+    test('normalizes a bare structured JSON response without a repair option', async () => {
+        (globalThis as any).generateRaw.mockResolvedValueOnce(
+            '{"analysis":"checked","json_patch":[{"op":"replace","path":"/hp","value":72}]}'
+        );
+
+        const result = await generateExtraModel();
+
+        expect(result).toContain('<UpdateVariable>');
+        expect(result).toContain('<JSONPatch>');
+        expect(result).toContain('"path": "/hp"');
+    });
+
+    test.each([generateExtraModel, invokeExtraModelWithStrategy])(
+        'lets the custom validator handle unfiltered replies with %p',
+        async invoke => {
+            useDataStore().settings.通知.额外模型解析中 = false;
+            const response = '<JSONPatch>invalid</JSONPatch>' + "_.set('hp', 80);";
+            (globalThis as any).generateRaw.mockResolvedValueOnce(response);
+            const validate_result = jest.fn(async (result: string) => {
+                await Promise.resolve();
+                return result;
+            });
+            await expect(invoke({ validate_result })).resolves.toBe(response);
+            expect(validate_result).toHaveBeenCalledTimes(1);
+            expect(validate_result).toHaveBeenCalledWith(response);
+        }
+    );
+
+    describe('preserves previously accepted reply formats for trial validation', () => {
+        const originalYaml = Object.getOwnPropertyDescriptor(globalThis, 'YAML');
+        beforeAll(() =>
+            Object.defineProperty(globalThis, 'YAML', { configurable: true, value: YAML })
+        );
+        afterAll(() => {
+            if (originalYaml) Object.defineProperty(globalThis, 'YAML', originalYaml);
+            else Reflect.deleteProperty(globalThis, 'YAML');
+        });
+        const formats = [
+            {
+                name: 'json',
+                array: '[{"op":"replace","path":"/hp","value":80}]',
+                object: '{"json_patch":[{"op":"replace","path":"/hp","value":80}]}',
+            },
+            {
+                name: 'json5',
+                array: "[{op:'replace',path:'/hp',value:80,}]",
+                object: "{json_patch:[{op:'replace',path:'/hp',value:80,}],}",
+            },
+            {
+                name: 'yaml',
+                array: '- op: replace\n  path: /hp\n  value: 80',
+                object: 'json_patch:\n  - op: replace\n    path: /hp\n    value: 80',
+            },
+        ];
+        const cases = formats.flatMap(format =>
+            (['array', 'object'] as const).flatMap(shape =>
+                ['none', 'anonymous', 'language'].flatMap(fence =>
+                    (shape === 'array'
+                        ? ['bare', 'update', 'patch', 'update+patch']
+                        : ['bare', 'update']
+                    ).map(wrapper => {
+                        let response =
+                            fence === 'none'
+                                ? format[shape]
+                                : `\`\`\`${fence === 'language' ? format.name : ''}\n${format[shape]}\n\`\`\``;
+                        if (wrapper.includes('patch'))
+                            response = `<JSONPatch>\n${response}\n</JSONPatch>`;
+                        if (wrapper.includes('update'))
+                            response = `<UpdateVariable>\n${response}\n</UpdateVariable>`;
+                        return { name: `${format.name}/${shape}/${fence}/${wrapper}`, response };
+                    })
+                )
+            )
+        );
+        test.each(cases)('$name remains accepted', async ({ response }) => {
+            const variables: MvuData = {
+                stat_data: { hp: 72 },
+                initialized_lorebooks: {},
+                schema: { type: 'object', properties: {} },
+            };
+            (globalThis as any).generateRaw.mockResolvedValueOnce(response);
+            const validate_result = jest.fn(async (result: string) => {
+                const error = await validateIncrementalRepairAgainstState(result, variables);
+                if (error) throw new Error(error);
+                return result;
+            });
+            const accepted = await generateExtraModel({ validate_result });
+            expect(accepted).not.toBeNull();
+            expect(validate_result).toHaveBeenCalledTimes(1);
+            expect(variables.stat_data).toEqual({ hp: 72 });
+        });
+    });
+
+    test('retries when asynchronous result validation rejects an attempt', async () => {
+        const store = useDataStore();
+        store.settings.额外模型解析配置.请求方式 = '依次请求，失败后重试';
+        store.settings.额外模型解析配置.请求次数 = 2;
+        store.settings.通知.额外模型解析中 = false;
+        (globalThis as any).generateRaw
+            .mockResolvedValueOnce('<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>')
+            .mockResolvedValueOnce(
+                '<UpdateVariable><JSONPatch>[{"op":"replace","path":"/hp","value":72}]</JSONPatch></UpdateVariable>'
+            );
+        const validate_result = jest.fn(async (result: string) => {
+            await Promise.resolve();
+            if (result.includes('[]')) throw new Error('invalid attempt');
+            return result;
+        });
+
+        const result = await invokeExtraModelWithStrategy({ validate_result });
+
+        expect((globalThis as any).generateRaw).toHaveBeenCalledTimes(2);
+        expect(validate_result).toHaveBeenCalledTimes(2);
+        expect(result).toContain('"value":72');
+    });
+
+    test.each(['聊天消息', '格式化输出'] as const)(
+        'passes an empty tools list for %s requests on supported TavernHelper versions',
+        async response_format => {
+            const store = useDataStore();
+            store.versions.tavernhelper = MIN_FUNCTION_CALLING_TAVERN_HELPER_VERSION;
+            store.settings.额外模型解析配置.应答格式 = response_format;
+            if (response_format === '格式化输出') {
+                (globalThis as any).generateRaw.mockResolvedValue(
+                    JSON.stringify({
+                        analysis: 'ok',
+                        json_patch: [{ op: 'replace', path: '/x', value: 1 }],
+                    })
+                );
+            }
+
+            await generateExtraModel();
+
+            expect((globalThis as any).generateRaw).toHaveBeenCalledWith(
+                expect.objectContaining({ tools: [] })
+            );
+        }
+    );
+
+    test('passes an empty tools list through the current-preset request path', async () => {
+        const store = useDataStore();
+        store.versions.tavernhelper = MIN_FUNCTION_CALLING_TAVERN_HELPER_VERSION;
+        store.settings.额外模型解析配置.破限方案 = '使用当前预设';
+        (globalThis as any).generate = jest
+            .fn()
+            .mockResolvedValue("<UpdateVariable>\n_.set('x', 1);\n</UpdateVariable>");
+
+        await generateExtraModel();
+
+        expect((globalThis as any).generate).toHaveBeenCalledWith(
+            expect.objectContaining({ tools: [] })
+        );
+    });
+
+    test('only passes the MVU tool for tool-call requests on supported TavernHelper versions', async () => {
+        const store = useDataStore();
+        store.versions.tavernhelper = MIN_FUNCTION_CALLING_TAVERN_HELPER_VERSION;
+        store.settings.额外模型解析配置.应答格式 = '工具调用';
+
+        await generateExtraModel();
+
+        expect((globalThis as any).generateRaw).toHaveBeenCalledWith(
+            expect.objectContaining({
+                tools: [MVU_TOOL_DEFINITION],
+                tool_choice: 'required',
+            })
+        );
+    });
+
+    test('does not pass an empty tools list to unsupported TavernHelper versions', async () => {
+        const store = useDataStore();
+        store.versions.tavernhelper = '4.8.3';
+        store.settings.额外模型解析配置.应答格式 = '聊天消息';
+
+        await generateExtraModel();
+
+        const config = (globalThis as any).generateRaw.mock.calls[0][0];
+        expect(config).not.toHaveProperty('tools');
+    });
+
+    test('adds random header for Gemini built-in jailbreak by default', async () => {
+        (globalThis as any).SillyTavern.getChatCompletionModel.mockReturnValue('gemini-test');
+
+        await generateExtraModel();
+
+        const config = (globalThis as any).generateRaw.mock.calls[0][0];
+        expect(config.ordered_prompts[0]).toEqual({
+            role: 'system',
+            content: expect.stringMatching(RANDOM_HEADER_PATTERN),
+        });
+    });
+
+    test('omits random header for non-Gemini models when enabled', async () => {
+        await generateExtraModel();
+
+        const config = (globalThis as any).generateRaw.mock.calls[0][0];
+        expect(config.ordered_prompts).not.toContainEqual(
+            expect.objectContaining({
+                role: 'system',
+                content: expect.stringMatching(RANDOM_HEADER_PATTERN),
+            })
+        );
+    });
+
+    test('omits random header for Gemini when disabled', async () => {
+        const store = useDataStore();
+        store.settings.额外模型解析配置.随机头部 = false;
+        (globalThis as any).SillyTavern.getChatCompletionModel.mockReturnValue('gemini-test');
+
+        await generateExtraModel();
+
+        const config = (globalThis as any).generateRaw.mock.calls[0][0];
+        expect(config.ordered_prompts).not.toContainEqual(
+            expect.objectContaining({
+                role: 'system',
+                content: expect.stringMatching(RANDOM_HEADER_PATTERN),
+            })
+        );
+    });
+
+    test('uses request-scoped custom json_object body on TavernHelper 4.8.13+', async () => {
+        const store = useDataStore();
+        store.versions.tavernhelper = '4.8.13';
+        store.settings.额外模型解析配置.应答格式 = '格式化输出(v4兼容)';
+        store.settings.额外模型解析配置.模型来源 = '自定义';
+        store.settings.额外模型解析配置.破限方案 = '使用当前预设';
+        store.settings.额外模型解析配置.关闭thinking = true;
+        (globalThis as any).SillyTavern.chatCompletionSettings.custom_include_body =
+            'existing_flag: true';
+        (globalThis as any).generate = jest.fn().mockResolvedValue(
+            JSON.stringify({
+                analysis: 'ok',
+                json_patch: [{ op: 'replace', path: '/x', value: 1 }],
+            })
+        );
+
+        const result = await generateExtraModel();
+
+        expect(result).toContain('<JSONPatch>');
+        expect((globalThis as any).generate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                tools: [],
+                custom_api: expect.objectContaining({
+                    source: 'custom',
+                    custom_include_body: {
+                        existing_flag: true,
+                        response_format: { type: 'json_object' },
+                        thinking: { type: 'disabled' },
+                    },
+                }),
+            })
+        );
+        expect((globalThis as any).SillyTavern.chatCompletionSettings.custom_include_body).toBe(
+            'existing_flag: true'
+        );
+        expect((globalThis as any).builtin.saveSettings).not.toHaveBeenCalled();
+    });
+
+    test('uses temporary saved custom json_object response format before TavernHelper 4.8.13', async () => {
+        const store = useDataStore();
+        store.versions.tavernhelper = '4.8.12';
+        store.settings.额外模型解析配置.应答格式 = '格式化输出(v4兼容)';
+        store.settings.额外模型解析配置.模型来源 = '自定义';
+        store.settings.额外模型解析配置.api地址 = 'https://example.com/v1';
+        store.settings.额外模型解析配置.模型名称 = 'deepseek-chat';
+        store.settings.额外模型解析配置.关闭thinking = true;
+        (globalThis as any).SillyTavern.chatCompletionSettings.custom_include_body =
+            'existing_flag: true';
+
+        (globalThis as any).generateRaw = jest.fn().mockImplementation(async config => {
+            expect((globalThis as any).builtin.saveSettings).toHaveBeenCalledTimes(1);
+            expect(
+                (globalThis as any).SillyTavern.chatCompletionSettings.custom_include_body
+            ).toContain(`response_format:\n  type: json_object`);
+            expect(
+                (globalThis as any).SillyTavern.chatCompletionSettings.custom_include_body
+            ).toContain(`thinking:\n  type: disabled`);
+            expect(config.custom_api).toEqual(
+                expect.objectContaining({
+                    source: 'custom',
+                    apiurl: 'https://example.com/v1',
+                    model: 'deepseek-chat',
+                })
+            );
+            expect(config.json_schema).toBeUndefined();
+            return JSON.stringify({
+                analysis: 'ok',
+                json_patch: [{ op: 'replace', path: '/x', value: 1 }],
+            });
+        });
+
+        const result = await generateExtraModel();
+
+        expect(result).toContain('<JSONPatch>');
+        expect(result).toContain('"op": "replace"');
+        expect((globalThis as any).SillyTavern.chatCompletionSettings.custom_include_body).toBe(
+            'existing_flag: true'
+        );
+        expect((globalThis as any).builtin.saveSettings).toHaveBeenCalledTimes(2);
+    });
+
+    test('restores saved custom json_object response format after v4 compatible request failure', async () => {
+        const store = useDataStore();
+        store.versions.tavernhelper = '4.3.9';
+        store.settings.额外模型解析配置.应答格式 = '格式化输出(v4兼容)';
+        store.settings.额外模型解析配置.模型来源 = '自定义';
+        (globalThis as any).SillyTavern.chatCompletionSettings.custom_include_body =
+            'existing_flag: true';
+        (globalThis as any).generateRaw = jest.fn().mockRejectedValue(new Error('request failed'));
+
+        await expect(generateExtraModel()).rejects.toThrow('request failed');
+
+        expect((globalThis as any).SillyTavern.chatCompletionSettings.custom_include_body).toBe(
+            'existing_flag: true'
+        );
+        expect((globalThis as any).builtin.saveSettings).toHaveBeenCalledTimes(2);
+    });
+
+    test('keeps temporary custom json_object response format for concurrent strategy requests', async () => {
+        const store = useDataStore();
+        store.versions.tavernhelper = '4.3.9';
+        store.settings.额外模型解析配置.应答格式 = '格式化输出(v4兼容)';
+        store.settings.额外模型解析配置.模型来源 = '自定义';
+        store.settings.额外模型解析配置.请求方式 = '同时请求多次';
+        store.settings.额外模型解析配置.请求次数 = 2;
+        store.settings.通知.额外模型解析中 = false;
+        (globalThis as any).SillyTavern.chatCompletionSettings.custom_include_body =
+            'existing_flag: true';
+
+        (globalThis as any).generateRaw = jest.fn().mockImplementation(async config => {
+            expect((globalThis as any).builtin.saveSettings).toHaveBeenCalledTimes(1);
+            expect(
+                (globalThis as any).SillyTavern.chatCompletionSettings.custom_include_body
+            ).toContain(`response_format:\n  type: json_object`);
+            expect(config.custom_api).toEqual(
+                expect.objectContaining({
+                    source: 'custom',
+                })
+            );
+            return JSON.stringify({
+                analysis: 'ok',
+                json_patch: [{ op: 'replace', path: '/x', value: 1 }],
+            });
+        });
+
+        const result = await invokeExtraModelWithStrategy();
+
+        expect(result).toContain('<JSONPatch>');
+        expect((globalThis as any).generateRaw).toHaveBeenCalledTimes(2);
+        expect((globalThis as any).SillyTavern.chatCompletionSettings.custom_include_body).toBe(
+            'existing_flag: true'
+        );
+        expect((globalThis as any).builtin.saveSettings).toHaveBeenCalledTimes(2);
+    });
+
+    test('blocks reentry while temporary settings save is pending', async () => {
+        const store = useDataStore();
+        store.versions.tavernhelper = '4.3.9';
+        store.settings.额外模型解析配置.应答格式 = '格式化输出(v4兼容)';
+        store.settings.额外模型解析配置.模型来源 = '自定义';
+
+        let resolve_save_settings!: () => void;
+        let save_settings_calls = 0;
+        (globalThis as any).builtin.saveSettings = jest.fn(() => {
+            save_settings_calls++;
+            if (save_settings_calls === 1) {
+                return new Promise<void>(resolve => {
+                    resolve_save_settings = resolve;
+                });
+            }
+            return Promise.resolve();
+        });
+
+        const first_request = generateExtraModel();
+        await Promise.resolve();
+
+        await expect(generateExtraModel()).rejects.toThrow(
+            'setExtraAnalysisStates() should not be called recursively.'
+        );
+
+        resolve_save_settings();
+        (globalThis as any).generateRaw = jest.fn().mockResolvedValue(
+            JSON.stringify({
+                analysis: 'ok',
+                json_patch: [{ op: 'replace', path: '/x', value: 1 }],
+            })
+        );
+        await first_request;
+        expect((globalThis as any).SillyTavern.chatCompletionSettings.custom_include_body).toBe(
+            undefined
+        );
+    });
+
+    test('rejects v4 compatible formatted output when model source matches the extension', async () => {
+        const store = useDataStore();
+        store.settings.额外模型解析配置.应答格式 = '格式化输出(v4兼容)';
+        store.settings.额外模型解析配置.模型来源 = '与插头相同';
+
+        await expect(generateExtraModel()).rejects.toThrow('不能与插头相同');
+
+        expect((globalThis as any).generateRaw).not.toHaveBeenCalled();
+        expect((globalThis as any).builtin.saveSettings).not.toHaveBeenCalled();
+    });
+
+    test('keeps json_schema for regular formatted output without temporary settings save', async () => {
+        const store = useDataStore();
+        store.settings.额外模型解析配置.应答格式 = '格式化输出';
+        (globalThis as any).generateRaw = jest.fn().mockResolvedValue(
+            JSON.stringify({
+                analysis: 'ok',
+                json_patch: [{ op: 'replace', path: '/x', value: 1 }],
+            })
+        );
+
+        await generateExtraModel();
+
+        expect((globalThis as any).generateRaw).toHaveBeenCalledWith(
+            expect.objectContaining({
+                json_schema: expect.objectContaining({
+                    name: 'mvu_json_patch',
+                }),
+            })
+        );
+        expect((globalThis as any).builtin.saveSettings).not.toHaveBeenCalled();
+    });
+});

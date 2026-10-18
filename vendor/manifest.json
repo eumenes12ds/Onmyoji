@@ -1,0 +1,785 @@
+[
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@google/genai@2.21.0/+esm",
+    "dest": "vendor/esm/8c6d4f2ea1106fc99c05.js",
+    "originalSha": "4e391d23f2cacac47835ccc47758cb0ef63c9da7904d51ff12a6d21e626e54ef",
+    "bytes": 372930,
+    "version": "2.21.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "cc5c3fdc9c4e136a3b638c8aaa7622c9b118a711f8a441e596cf05e44477f4d8"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/p-retry@4.6.2/+esm",
+    "dest": "vendor/esm/9a1acf5b11af841d6c49.js",
+    "originalSha": "9164586d27d11bcd2328ad7303982fa9d621746599dcb8955c79cb32a9fea403",
+    "bytes": 1601,
+    "version": "4.6.2",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "84b902702952d1242ae06da3043fc37ce4b8f8d93d3061a0b7657f4271fc354b"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/retry@0.13.1/+esm",
+    "dest": "vendor/esm/9303ab6c0cc5e366602c.js",
+    "originalSha": "c08b7e43af5736b2be45918f688966fa38362e21d04f2f59276cd5f9359d4542",
+    "bytes": 4064,
+    "version": "0.13.1",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "16122fbe1b1f0911ba02b8d15bedbde31ab9cdb297483d4a2e2c78e89854b24f"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/+esm",
+    "dest": "vendor/esm/1fffe4f9225c2f90e6a2.js",
+    "originalSha": "af7634875fe5166cdce750076035f75b7cd653ce4dabe4d8af34a7278f6d856f",
+    "bytes": 54273,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "dd3dc50477accc4794006d8a96cf595dd653354bc18b60a1133916151971bd3e"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/typebox@1.3.27/+esm",
+    "dest": "vendor/esm/3dc4f4647233c00eef3c.js",
+    "originalSha": "1fc19e0e02de42ee97515933c0250e94d6924f402bcaf6ae409e92fa7ca65e9e",
+    "bytes": 77028,
+    "version": "1.3.27",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "27ad44df0aba54d52045099bc51be22f9ca8b0c374b65d768aaf7167eca9111e"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/partial-json@0.1.7/+esm",
+    "dest": "vendor/esm/6a73b4143fd85fd3ba0a.js",
+    "originalSha": "f7d1dcbdc45780ff1c525bded427414e49604498ee9c509139e1fca873413aba",
+    "bytes": 4690,
+    "version": "0.1.7",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "8441c33a0a8c4d708c6cdfdb3c8cbceb1002c3a051f3bd22d8955dfd3c80d9fd"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/typebox@1.3.27/compile/+esm",
+    "dest": "vendor/esm/e3583786200c1fddc1c6.js",
+    "originalSha": "f295d42337008d117104084af9d7c2093757e0ab9afa31e150521d1b1851df2a",
+    "bytes": 126933,
+    "version": "1.3.27",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "f555e1be4806f07ccd2282b6b4ae61bca48cf184bbb125897118fa70364091ea"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/typebox@1.3.27/value/+esm",
+    "dest": "vendor/esm/04fecfc3acba7eec39dc.js",
+    "originalSha": "5cb4c0120e8cf72c98977c6e73395392816304eb97a35adac27c3c953eedbd6f",
+    "bytes": 115395,
+    "version": "1.3.27",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "962c9110a4997862aa9cb743b2057e875bc7f48932b3232a88d1c3753074c089"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/ant-ling.models/+esm",
+    "dest": "vendor/esm/75d34f0fff1f63f80e25.js",
+    "originalSha": "521c8ff9aac7f315f81b7613563adc8f02068d0736400afc5b7f254b11253769",
+    "bytes": 2257,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "13c0f5b8cffabe2d8fa5803e9f32db1e59945858f0231c46294abecaa99c9d17"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/anthropic.models/+esm",
+    "dest": "vendor/esm/95243947bb2e1ce16bf1.js",
+    "originalSha": "3e56487bd64184b2bafd6c2ea9484a0b7e872aa427f4bda42c2dd8cd8b211b2a",
+    "bytes": 10323,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "488502801923c49a8c2bfcf4d91875e294591b777c2efe62bd652f661c2bc00b"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/baseten.models/+esm",
+    "dest": "vendor/esm/ea5635c8f849d5ebd666.js",
+    "originalSha": "4c787bb045233838edec1a16df01c55b45c6206b98507f93615821f2524fcfe4",
+    "bytes": 16592,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "84e194db62c6e4f4279adb350ef917b5eb0a04f17ce2a6c5495eb1bc421c97db"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/cerebras.models/+esm",
+    "dest": "vendor/esm/ae572b5a119d8f94f5f5.js",
+    "originalSha": "7b482654b29957cc9734d115ec35d82aed82fbe87e0d58fef2966c358fc5c0d7",
+    "bytes": 1745,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "d8f16039eadfadb6c7d2572ca8333510c1546c01fb48331347d07b3f798a2400"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/deepseek.models/+esm",
+    "dest": "vendor/esm/292c508e8762db1ace12.js",
+    "originalSha": "36bb1992838507412cdff74ff2b4b5f5e84fa72a37aab1f2c2555827e7036fd9",
+    "bytes": 1991,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "91ff1dc7afcb3788f755c686f6ca34207f26abfa97dd2dda25c025ba63d9f94b"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/fireworks.models/+esm",
+    "dest": "vendor/esm/109e05a909c782906730.js",
+    "originalSha": "85fc4d00f75d7a5d0dc619801d99d9fbbb5edeaa17372678b9b80118bcb2f328",
+    "bytes": 15157,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "211cab936b813bac49817e222c6d339ceb5a243756b78fa73c00a1985967a4e8"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/github-copilot.models/+esm",
+    "dest": "vendor/esm/0dce6c124d47f380397b.js",
+    "originalSha": "44dbd01a7543e986c882701b746a86dad8b80591fade4310dc744bec248ebdd6",
+    "bytes": 25472,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "c4fd39b9e86a876699d72e435bb163c7b3e4c063724afeb46566329f3a1a3ad1"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/google.models/+esm",
+    "dest": "vendor/esm/eeeca12f2ef2df45bacd.js",
+    "originalSha": "d8e81149aceee05d6f040ea10610d24cf6aa34469bcbe483ff3e2aca3c07f7fb",
+    "bytes": 12708,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "043534fdb1e3c232461453c19a17727d9d301a1cbf2f7b5e51737a62f965d503"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/groq.models/+esm",
+    "dest": "vendor/esm/ac81ba9e54fa8c9aad1d.js",
+    "originalSha": "96e2406b12aef085383be0a012b1b92f9e72d4d84d56784e35f0e54c9e58a8cd",
+    "bytes": 3704,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "f97dde828b63c6d0e28ea24339a8962825d41fa8b273d824f076dcc0ee4c6918"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/huggingface.models/+esm",
+    "dest": "vendor/esm/021f23b79fe99890b46a.js",
+    "originalSha": "770b0726def05c0966e47a55c63161aa61f87bc7026bfd0a2f6d52688b8a1144",
+    "bytes": 33049,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "56138f657c009eadbe6dfdb83badfa094cd1dad46a0db6541cfd007e4af3fb9d"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/kimi-coding.models/+esm",
+    "dest": "vendor/esm/cc8e2aea65833165e9af.js",
+    "originalSha": "1e6be759b23857b7fa981d96aa5be36482822248b81b3d044726a0d4205ea634",
+    "bytes": 2800,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "f9bb19e389fa6ab77dfce4f641a99dcc70f76f5c615561dca96c226b6469ffb1"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/minimax.models/+esm",
+    "dest": "vendor/esm/0e78c4af502b7788483f.js",
+    "originalSha": "9274147154b7b4385744749c89ddc285de94008f657bb5ac72c0b71e2bb09f88",
+    "bytes": 1753,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "00416f1fa582f9ad7e1a94d139ae4efadb3770df025e6a833e531343fe46b2ef"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/minimax-cn.models/+esm",
+    "dest": "vendor/esm/3ddf2606c4efe66a6aba.js",
+    "originalSha": "45c41ad603c6450f9d0e4c4d22101fce551343ec8229d97ac58b7bdbc2d01319",
+    "bytes": 1789,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "3c45ded4bce114c0a6f86b3f7816f37e3d583c68244125a577c0fd5c503e4d9b"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/mistral.models/+esm",
+    "dest": "vendor/esm/9d6cb0dcee2fbdc7a899.js",
+    "originalSha": "fe9f4a2a2fecb8fe35a2710925f5672f0ece20fa5198bdbd280efbe0e35ad412",
+    "bytes": 11885,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "f01d7e2527b37b404f7e85cff62a112d7ea567f903df742c03d52b52a2829f8d"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/moonshotai.models/+esm",
+    "dest": "vendor/esm/ba9d170b60e6258d110f.js",
+    "originalSha": "c8240abb1b45d10e04165d40cfd585029685d00bab99229f5009b833027476b8",
+    "bytes": 3308,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "a5f56c251c934667b307cecd694822289d27302f4110475cb7acb03e9e56b840"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/moonshotai-cn.models/+esm",
+    "dest": "vendor/esm/d8b0964c3f791dec3a3d.js",
+    "originalSha": "95f4a14282dbb6cac05563729bc2cccebe94163f36f3435e4d5e3fd1c20780ec",
+    "bytes": 3341,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "c7d5d807509af01d2fef0c517c738073e98283cbe5f6c4ba068ed74b92e2580b"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/nvidia.models/+esm",
+    "dest": "vendor/esm/aeeb1b1615abf3ddd3df.js",
+    "originalSha": "07cb015fbe29a25aaf51d4b27b41be0565447371435bde6d769da510f6759542",
+    "bytes": 11413,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "196478e178c999f3a74f70fd154b31305d3fdb3947aaf437e217049f02562cfe"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/openai.models/+esm",
+    "dest": "vendor/esm/9ff59bf8016532e563cd.js",
+    "originalSha": "49a88b8478df3d56afd1622bb81efc23a7a62f0805ae730b538ed08129c02bd3",
+    "bytes": 25942,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "2bd7008fdae32bd6f795856a02e97c07b22335faed521d9591af1edae759a608"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/openai-codex.models/+esm",
+    "dest": "vendor/esm/6a4dadfa543184c6c19b.js",
+    "originalSha": "152c4bcb44c557a66fdec8e0d4d78beaa5c1921f45ef4a6f81dd82348599323d",
+    "bytes": 6469,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "fbc1edb07c526908c72342824cab13652b924cb44353b572459b27c5e18a3c9f"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/opencode.models/+esm",
+    "dest": "vendor/esm/94aaf5278d1f6b63d7ab.js",
+    "originalSha": "ee1e59be14a1f5e309d85989838c03b3d0e73cbac37b73273546080143dea4fc",
+    "bytes": 41399,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "745247a821e391a2f6499cb406c8ae6438539d41d5ba052f7b6644921c8be602"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/opencode-go.models/+esm",
+    "dest": "vendor/esm/85e8c489a2ea06ccf996.js",
+    "originalSha": "816e4589d23d92345577244163ceec821e7af47426c032e1b237d2fcf9f20ce8",
+    "bytes": 15696,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "52809fe8494c75cd45dfbb6b85dd5cb7f1dbba0f376b6537a7db8c080647706b"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/openrouter.models/+esm",
+    "dest": "vendor/esm/29c39e3af699a16bed1d.js",
+    "originalSha": "b97e24aec184b12a834f94eab276eea5a4a0ae38cbd5dbcc547e46d85e56ec10",
+    "bytes": 239106,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "3cd66c32a79d5de7101108e9d4e0741590b6a89f06de424d19338333a453c9c3"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/qwen-token-plan.models/+esm",
+    "dest": "vendor/esm/3895eb6fb3f1bb1442b0.js",
+    "originalSha": "16ddc895393025487da6f5432f085f490b2e88f765a20430bf69a26c03f75ad8",
+    "bytes": 11589,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "ef34c1d5532558d9df30854c4f0dde9e1f0f001254d690b634f9f3dd0fd84d05"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/qwen-token-plan-cn.models/+esm",
+    "dest": "vendor/esm/65367cd5c19b736885da.js",
+    "originalSha": "ba31da7ebab1ebff6faf30b8b096dc7b17305d01319d47eb018d106e47bdc952",
+    "bytes": 11590,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "415ccfb2b2ee18bb3a029d080e5d9fd8d79a97cd7703e8b644e730115c75c985"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/qwen-token-plan-individual.models/+esm",
+    "dest": "vendor/esm/551d97e76647bcab842c.js",
+    "originalSha": "51a6e47965ceb4a33857375cb09adb34d4ab3d85584be66bf32f62d9c82d6593",
+    "bytes": 5993,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "959b757cb37702384e55180732565b8438b5b7b35a8584da492a9df90c8b539b"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/together.models/+esm",
+    "dest": "vendor/esm/1878f9d5b4493bddfb25.js",
+    "originalSha": "fb30bdc323c6d5361dfce0815d9adae34317b914553b8d0f8387fa3cf3cca6a5",
+    "bytes": 12118,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "2c4d37b5e8396e0217a2732d3e9e838a5ddfad6be1945b67c382e240a5c15355"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/vercel-ai-gateway.models/+esm",
+    "dest": "vendor/esm/33c03fd7ad6939fc4354.js",
+    "originalSha": "cdcc80c3edd1b8699844fa779ea0c6deec51f44f5144359b621cb6b67367fce4",
+    "bytes": 105497,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "b80e1ceded09ef2645f814e33dc3f08cf0d4eb09990ba16a8e8eaeddfde2c6d3"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/xai.models/+esm",
+    "dest": "vendor/esm/4773faa719fd7e3ac26e.js",
+    "originalSha": "f2d806c042cf9780ffe27a5d08741c584ddb26a4ffb97491050bc70f06e8b0e9",
+    "bytes": 2973,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "5e4dd81a69f254766feccffaa7d84a87babe7b865900a785c4ca2c9c59948ec0"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/xiaomi.models/+esm",
+    "dest": "vendor/esm/c2b31f343bea46120ce4.js",
+    "originalSha": "897e5c3ce609d714b7637317f06a4ec149989235ca79ce6ff772ab5ccd3f0767",
+    "bytes": 3561,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "9799cfaad1e8a0a4a04e4dfa46bba90b82101c2b913159e0450a9858fa5ea391"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/xiaomi-token-plan-ams.models/+esm",
+    "dest": "vendor/esm/835998b348f3d8fef7c4.js",
+    "originalSha": "6ac3e720ae47a037ff80bbfc68e289ff63c4e0e1d34a9db6d535d57f6627a03f",
+    "bytes": 2796,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "be10cca72fe3b7366078223be6d9def5df8db93c5d830c58e7615366890b368b"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/xiaomi-token-plan-cn.models/+esm",
+    "dest": "vendor/esm/d2ab541d7e4dd5f8e7c0.js",
+    "originalSha": "ff5db691f96de9051ef0386093437400caa89baac1be9dc2981d003253312817",
+    "bytes": 2781,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "6a9a1febda4b8229afaaea417ab1569c6bf68b94123bbdd0af6b394c32056863"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/xiaomi-token-plan-sgp.models/+esm",
+    "dest": "vendor/esm/607060356be6190d989f.js",
+    "originalSha": "709299748513a11be522493e0617e46f8e949cbe53ab5c895866bfb06cc05a59",
+    "bytes": 2796,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "01fcb5f22d561d7dd0d5f502c8f3e7e72aef995873d483af037a20f58f44f82a"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/zai.models/+esm",
+    "dest": "vendor/esm/db67f6fd41b591d7c777.js",
+    "originalSha": "dd2eca317fbf239438cbec9b65a007fbdfb3c6b43a47d903bedf8cbaee632332",
+    "bytes": 4410,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "fe37907ceff1efe1cfb2051077b2fd1dbdaa567f27e964445a2c9142c36f28cd"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/providers/zai-coding-cn.models/+esm",
+    "dest": "vendor/esm/e39cb5a51840cdaa288a.js",
+    "originalSha": "b2dbae8dba3496715a5f342866862b9543b5aac4956df82b3dc43d5a1c422911",
+    "bytes": 3140,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "d5df107d7ad6c7cc3d733accb4b382fb33d8a83ee9b49759a93c07d8928347af"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/api/openai-responses.lazy/+esm",
+    "dest": "vendor/esm/b52f1a9d774b6fbef68a.js",
+    "originalSha": "c114d000b24e7b281a569560c8dbebd6b7c4e5c137c503731b86bf540bb5969b",
+    "bytes": 2505,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "da1207ca25486fc4369e3a5223fcc1fd389b837e5be4e2d673f69a5ada8d51f4"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/dist/api/openai-responses.js/+esm",
+    "dest": "vendor/esm/35f3481c09b71d8ed5c2.js",
+    "originalSha": "60999064b55f1c861d31f9f480751ed089cd6cb4d953a12484d2a89f4d8f14cc",
+    "bytes": 38707,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "d3a08e6e917a6339d9ca6068499b38e334d010a117c3dfb7bfda1ca5323ee700"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/openai@7.19.0/+esm",
+    "dest": "vendor/esm/74a00456650104da2f25.js",
+    "originalSha": "00d2e3d3d685c8a9526d9f7a1742870424fb25d6222c3a759d3eabf8f7224f38",
+    "bytes": 306091,
+    "version": "7.19.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "c85f82de45216803583c93270b7dd122af72364c2915a4d352f09695bdda62bb"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/api/openai-completions.lazy/+esm",
+    "dest": "vendor/esm/82701e47ca78d1d80afb.js",
+    "originalSha": "6b1a9f79dbf3f10113be1e1068e9dbe0635df7f7e41c4b0f91d4979824b078cf",
+    "bytes": 2511,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "03abd6e264f0a9a42dde31c4775b631806a78c558cc660a82325ac11622e392a"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/dist/api/openai-completions.js/+esm",
+    "dest": "vendor/esm/42030b816d7130e9a466.js",
+    "originalSha": "b50c5c8efc2f416d18d83b5e6c6c3587b6e95f626e54dfffd41987737db66621",
+    "bytes": 43491,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "e81d691a21ff44f6735a6c45c158f2cb047bbccab227e617228925ace0e48567"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/api/anthropic-messages.lazy/+esm",
+    "dest": "vendor/esm/a86fdbdbdfc11dc12700.js",
+    "originalSha": "afba10b332860b1cd4773006a5cbb31ef7d32a05b182cdabbfe8348d2b074dc0",
+    "bytes": 2511,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "7c19c8a958333e346509a026b29e3062a81b5cb7fd2076c4855c1b5da32cec02"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/dist/api/anthropic-messages.js/+esm",
+    "dest": "vendor/esm/dd633af3e5c9c8e85299.js",
+    "originalSha": "24f7cac510942620da561b5452979759629ba5ad7bc14671435781bd87dc209a",
+    "bytes": 37749,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "a6a5f2cc547e7d2451aa1b94b71ce53b4cf0c783e5dddcc69718872a68a9bada"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@anthropic-ai/sdk@0.124.0/+esm",
+    "dest": "vendor/esm/452062aabc2797ec1a07.js",
+    "originalSha": "452e86bdf16cb707e08375e3c3ea9df32c6b37e688b78d90c4d4aaf755d5967a",
+    "bytes": 185600,
+    "version": "0.124.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "0d29a65566ff31aced8d0c996fa1062a55388c4affd453a7b4124dc70f738d33"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/standardwebhooks@1.1.1/+esm",
+    "dest": "vendor/esm/f742742453d908044144.js",
+    "originalSha": "8df7d63173e554a800b77fc99b9f6a11e1a82a7b35c58382367adeda1d084c25",
+    "bytes": 3167,
+    "version": "1.1.1",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "b0200ca46405a7032e435461bbc39d7b51a0c2f8601b8e2b4bb419d4567d4970"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@stablelib/base64@1.0.1/+esm",
+    "dest": "vendor/esm/d0bc12bf01afc319160a.js",
+    "originalSha": "f73196ffc4a79754831b6f54d27f902257b2ac8eb280786bae6d8be6057e20dc",
+    "bytes": 4195,
+    "version": "1.0.1",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "fc4068e73342a4881faec450f005b284ad5f57e83e075e47b254b3658ac17a61"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/fast-sha256@1.3.0/+esm",
+    "dest": "vendor/esm/55bcf9e9c91f58cac876.js",
+    "originalSha": "9433f59580a920b8b3ebd603b4f2c2b39fe132b0f9dbab89367c85c5f65db376",
+    "bytes": 6698,
+    "version": "1.3.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "dd55ad4c2efb58bbe8d7c434bde99ea1e299e0a27ca7170d0d87dd9684ff4419"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@anthropic-ai/sdk@0.124.0/internal/node.browser.mjs/+esm",
+    "dest": "vendor/esm/073cb534ca3697b70b19.js",
+    "originalSha": "51ece06f2ac2843002562571e9e0b460dd2902c1b45496e29bd9087a6056d595",
+    "bytes": 752,
+    "version": "0.124.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "b15193c9119fabc7ebfcc5f7c365beec2faef3ff74f5eb417abd8e9bac9616af"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@anthropic-ai/sdk@0.124.0/tools/agent-toolset/node.browser.mjs/+esm",
+    "dest": "vendor/esm/441e5d5f6d3be74284c5.js",
+    "originalSha": "fb8cf24bf26bfa19c41ee2c70e3a5f1b19dc2e7d2ba644d9c3bebda3cbe5eb6d",
+    "bytes": 2142,
+    "version": "0.124.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "d8c368555b56875e662930211eecabe8eaa52e56e1ad06570e5f4bc5b11f9bfd"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/api/google-generative-ai.lazy/+esm",
+    "dest": "vendor/esm/d759a6f09fe1555d9896.js",
+    "originalSha": "fc9b2c09f81049688806cffea1e2560296b34c32e2488f2cdd794da8ab396b4d",
+    "bytes": 2516,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "13611aa1553906a792827665e2b637289c3b88f45d93e7a16cdf5232dcf72a3b"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/dist/api/google-generative-ai.js/+esm",
+    "dest": "vendor/esm/bc11fbf77542757e0e8a.js",
+    "originalSha": "08ded80cdac94cd6daa1ae9b299a96384580adbfd155cdbc507386bdb682d5db",
+    "bytes": 26193,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "efbc2401968552a3ee8dc321c59fbab91b523fb8e312dd01b60fceacb7e99cb7"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/api/mistral-conversations.lazy/+esm",
+    "dest": "vendor/esm/40247984e81338394c4d.js",
+    "originalSha": "da935c65d35d40a64b99ed368ce652484cc4e9a4e673125fd9f506c914ac98d9",
+    "bytes": 2520,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "cbe1344fe1fe7f30b5d197fac42107d39fbe7abbe0ad0d4c84109427633dcbc9"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/dist/api/mistral-conversations.js/+esm",
+    "dest": "vendor/esm/bbcb65e2c2b9488c68e3.js",
+    "originalSha": "b7aca6a4ab9a6fe73be2143e3955f244fc409a7d07d5458be11aa71f5af34b3f",
+    "bytes": 26424,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "38f006dd9b3d29592715c43d8c4855b27595a5a24709fe8c2b0ad5be33c13ee5"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/api/openai-codex-responses.lazy/+esm",
+    "dest": "vendor/esm/3016b3d20f3b66d094d4.js",
+    "originalSha": "2517bb38709a3798ee78cedba73e39b7a982778512481100be09b0a0beb29ca3",
+    "bytes": 2522,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "50e13e91c02e47f0c957ee5a5d93d8ee1365bf384f01b2b903783bc76f598d0c"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/dist/api/openai-codex-responses.js/+esm",
+    "dest": "vendor/esm/a8d449bda0b24e208582.js",
+    "originalSha": "2fe8499fe3cb0a0638557bb11df1cf2b1f103e72327f377870e65f7d88683557",
+    "bytes": 54944,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "72beffbd977db2eead1dcf8813a0fa138c506da925a178405444721b6d4fe61c"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/api/google-shared/+esm",
+    "dest": "vendor/esm/1f0b6f2b078f7613d99e.js",
+    "originalSha": "f5dac33ef313ba23b0c3e24ef128130a86f39c46789fcac0c35bc1f6660e0d5a",
+    "bytes": 13128,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "4edf66fc8d133ee7a0b7cd069eb3d3f990052ccea2ba6c124a23ac855012e30b"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@earendil-works/pi-ai@1.0.0/api/simple-options/+esm",
+    "dest": "vendor/esm/dffc9d918b854f78530c.js",
+    "originalSha": "fe780c23dbf8ad4b1dcc8970378f0fe4bd244c8a798f3b02f6c11a30db9d3bae",
+    "bytes": 3246,
+    "version": "1.0.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "b6daf204419e20a8103aa61694a95710fb511d1344d7c569754059eecb424fae"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@intlify/core-base/+esm",
+    "dest": "vendor/esm/857ab6a12acd12334bd7.js",
+    "originalSha": "b90d834078f776d12bf5557c131b98362aedd22538dd24623e5086c70d831e33",
+    "bytes": 19295,
+    "version": "11.4.14",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "90e73dd96cdb42784bd5bc34199122ce1ada19e99b78f30a367a1b38a97501eb"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@intlify/shared@11.4.14/+esm",
+    "dest": "vendor/esm/0d4a166459436f927d0d.js",
+    "originalSha": "5ea93ebff75e3a0bbdfef08dcaea631903df2c852a7cadcee046b0b81f37853c",
+    "bytes": 5522,
+    "version": "11.4.14",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "0519b24c3d5b2d20479fbf21b57e1ca00de83dccd791f4eda99825ad49673c8a"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@intlify/message-compiler@11.4.14/+esm",
+    "dest": "vendor/esm/039ecf21aac2d6d3f095.js",
+    "originalSha": "600690e11546817d699ca43836ecb31be744de1a77d3d035c06b12b61b3ddc78",
+    "bytes": 18635,
+    "version": "11.4.14",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "00e627e8332762f6c235444aa3bb794dce36a9de380f6225609325406a2edba0"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@intlify/shared/+esm",
+    "dest": "vendor/esm/73fefb391a8423a1bc96.js",
+    "originalSha": "5ea93ebff75e3a0bbdfef08dcaea631903df2c852a7cadcee046b0b81f37853c",
+    "bytes": 5522,
+    "version": "11.4.14",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "0519b24c3d5b2d20479fbf21b57e1ca00de83dccd791f4eda99825ad49673c8a"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/jsonrepair/+esm",
+    "dest": "vendor/esm/3c7c7792367063729f20.js",
+    "originalSha": "d74e6d2d78d2b12a8b32482657f5efa7691d09534551eb700a32ee741ffba362",
+    "bytes": 8324,
+    "version": "3.15.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "c3d7c68491b85903a2a5fbfc846a7cff46a5a9435bf43a3e164e743517f8d269"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/compare-versions/+esm",
+    "dest": "vendor/esm/83b186a3f9078165d338.js",
+    "originalSha": "72aca95e36fb70155e5f43546fe668c010fe82fd13e5a45d39427b26fed0a6f6",
+    "bytes": 2470,
+    "version": "6.1.1",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "9c562db00d33108ea99e755e29bc20d8e9f72bb18f6b0b5938f5eeedb52e260f"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/json5/+esm",
+    "dest": "vendor/esm/4067dc802db61d13b665.js",
+    "originalSha": "39805a3d9701b8ed20e892ccf86223f928382aa17edfc2361e6c5c76a473d3b2",
+    "bytes": 27420,
+    "version": "2.2.3",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "1f146fe23a4db0e8d6be2638d67b1d78492028e7c8c487504c01e0849fcfaa1e"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/klona/+esm",
+    "dest": "vendor/esm/bbebd2a5b26fbc18b65c.js",
+    "originalSha": "e6bb95d703905b5d1eed18561ba26568159f383f4b1f7a351de864c26ce8366b",
+    "bytes": 1246,
+    "version": "2.0.6",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "56d1d835d648f09fcbb1bbb9b4c9e363cacf9cd6e70d1b578da6c29ca6cc7582"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/mathjs/+esm",
+    "dest": "vendor/esm/736ffcf8174366651bec.js",
+    "originalSha": "e4f96c41f285c679208828138f3d19a5a0bc364dac729078516029aa998c7dd7",
+    "bytes": 666500,
+    "version": "15.2.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "fcdf2494d2f740cd5bf51beb64a88b7972daf93f22ec2f4ecd2d4d4e91e1cb81"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@babel/runtime@7.29.2/helpers/extends/+esm",
+    "dest": "vendor/esm/bf80c6b002dfa53793aa.js",
+    "originalSha": "ec0d3fce0e9fd17f25cea2126048308d34bc56cd8674f2d307cf2e59bb1cd303",
+    "bytes": 599,
+    "version": "7.29.2",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "c80134051c863d91cc01952fb1a4fc8420260dc171165fd32ceba327d6febfb2"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/typed-function@4.2.2/+esm",
+    "dest": "vendor/esm/b922ce65cd736f0346eb.js",
+    "originalSha": "905f3c6ff45d4afe2ac5fa070f154de730f43bace994219624e167eab4030498",
+    "bytes": 17775,
+    "version": "4.2.2",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "b7056e04120fd5031434400ccb9d4c861aeb95ac0f5f50b83f3aacf22ee779a1"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/decimal.js@10.6.0/+esm",
+    "dest": "vendor/esm/4d80640c12efef3a1e32.js",
+    "originalSha": "a969cf2e76c317b9daf06d5277bdbb0bda6a3c81003665ce50ae2a93dfbbdfaa",
+    "bytes": 32753,
+    "version": "10.6.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "6b51c1c05bb3361472084b0ca4f096611a010a76ae2c78be6efbac4e848f1d55"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/complex.js@2.4.3/+esm",
+    "dest": "vendor/esm/35f968ba57185a29b2d1.js",
+    "originalSha": "b8ff2754901e80d9fed82fdbb2e880da45c8df96152f2ac1c976190f31a7b865",
+    "bytes": 9884,
+    "version": "2.4.3",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "f4904f239d9220ed850ba8bd9b5e886d8774fdbefeadd1cb9b949a96c6dff78e"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/fraction.js@5.3.4/+esm",
+    "dest": "vendor/esm/2c735a2ad99ffcb8ad4a.js",
+    "originalSha": "8d8064193de7ee5c75b91a57f7afdecb3f14c2fd4d06f5381e865ef627dda9d8",
+    "bytes": 7185,
+    "version": "5.3.4",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "0f84383e891a4f026afaa4d949a86220aaf7bf56575848f9446e13d69383bff6"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/@babel/runtime@7.29.2/helpers/defineProperty/+esm",
+    "dest": "vendor/esm/6f3c58f84969edbea14f.js",
+    "originalSha": "e649731e0a92c66ba755fccfe9825af9209cbd06907e302a0d449433190f66b4",
+    "bytes": 1075,
+    "version": "7.29.2",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "51656efb227c65472d42a18e0516fd320125c5ea3107c5153e442378dca4dd50"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/javascript-natural-sort@0.7.1/+esm",
+    "dest": "vendor/esm/80e5a7b4c056181e21de.js",
+    "originalSha": "8c35c7db497edbd016a087f02e65118f4c07e75ab1785561cf78de6446f6a3f9",
+    "bytes": 1394,
+    "version": "0.7.1",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "d66f0f83cdcaec87e28a4410acc090a4b0804072f75c1e4002d55a5511e8a439"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/escape-latex@1.2.0/+esm",
+    "dest": "vendor/esm/11b53fec3cefbb306640.js",
+    "originalSha": "2f53a679867f4ab8eae49b93671bd7ef11e39027808a8ad4b2fea783d3064eda",
+    "bytes": 1298,
+    "version": "1.2.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "8b951af89eddcac0391bce9571df46b528f904ad1f0abe1768ebabe6b2303757"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/seedrandom@3.0.5/+esm",
+    "dest": "vendor/esm/aab5c8a1fb17d33a33e6.js",
+    "originalSha": "bff06d8dbe428efed7c3f061399890de74b6afddab70344e4b68a95055744d48",
+    "bytes": 8267,
+    "version": "3.0.5",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "31bccf44c7f82c2034e2144f3825c1b3837715fad6f4857b7be8ca4c11d34bda"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/tiny-emitter@2.1.0/+esm",
+    "dest": "vendor/esm/e38d2d8ba49473ce0bb7.js",
+    "originalSha": "0a23e30943430ad037b6b144f01d6fcb6fb38c8eff8610dcfa1354e274f0c9ae",
+    "bytes": 1115,
+    "version": "2.1.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "ace256cfcb60e0b1ea695431675ccce173bd11ccb3bdd0ae033045f248e5d8f0"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/compare-versions@6.1.1/+esm",
+    "dest": "vendor/esm/79316a62dd5f1afcbbf1.js",
+    "originalSha": "72aca95e36fb70155e5f43546fe668c010fe82fd13e5a45d39427b26fed0a6f6",
+    "bytes": 2470,
+    "version": "6.1.1",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "9c562db00d33108ea99e755e29bc20d8e9f72bb18f6b0b5938f5eeedb52e260f"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/json5@2.2.3/+esm",
+    "dest": "vendor/esm/b0d644ab07043b62c592.js",
+    "originalSha": "39805a3d9701b8ed20e892ccf86223f928382aa17edfc2361e6c5c76a473d3b2",
+    "bytes": 27420,
+    "version": "2.2.3",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "1f146fe23a4db0e8d6be2638d67b1d78492028e7c8c487504c01e0849fcfaa1e"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/jsonrepair@3.15.0/+esm",
+    "dest": "vendor/esm/0b90418a01d73f91559e.js",
+    "originalSha": "d74e6d2d78d2b12a8b32482657f5efa7691d09534551eb700a32ee741ffba362",
+    "bytes": 8324,
+    "version": "3.15.0",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "c3d7c68491b85903a2a5fbfc846a7cff46a5a9435bf43a3e164e743517f8d269"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/zod/v4/core/+esm",
+    "dest": "vendor/esm/34b445af0a4e2b3206ea.js",
+    "originalSha": "3093efb58b58ea6fd40094315a333a23d55dbf7433af5ff95b3831e1e40525f1",
+    "bytes": 410364,
+    "version": "4.6.7",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "53b8386f866da0aa75a2f632926d5464af49ee318328ba616a7ab2c77f0f07fb"
+  },
+  {
+    "url": "https://testingcf.jsdelivr.net/npm/klona@2.0.6/+esm",
+    "dest": "vendor/esm/1de46fb58e87eb049ea2.js",
+    "originalSha": "e6bb95d703905b5d1eed18561ba26568159f383f4b1f7a351de864c26ce8366b",
+    "bytes": 1246,
+    "version": "2.0.6",
+    "mime": "application/javascript; charset=utf-8",
+    "finalSha": "56d1d835d648f09fcbb1bbb9b4c9e363cacf9cd6e70d1b578da6c29ca6cc7582"
+  }
+]

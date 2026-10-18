@@ -1,0 +1,55 @@
+{
+  "repository": "https://github.com/StageDog/tavern_resource",
+  "commit": "12983fa53d4da19dc1f2a5e6b8c37a0eb12f2aa5",
+  "license": "Aladdin Free Public License",
+  "records": [
+    {
+      "file": "util/mvu_zod.ts",
+      "originalSha": "fbf796b744c13c2596a6d4856dbcf40319bef05704d6d7653a2f1e411141c696"
+    },
+    {
+      "file": "util/common.ts",
+      "originalSha": "22f33f9501c3317d593b8aad4a8784fd67c62e7394042e5f04c6d78ce3b0e5ea"
+    },
+    {
+      "file": "util/script.ts",
+      "originalSha": "957f7ad0db9f8660349e1a4d6cccc9fd74b27143132a06ea7002b4e6d301f3eb"
+    },
+    {
+      "file": "util/mvu.ts",
+      "originalSha": "d6940fa5401520e33cea4f1e0d8a5a4f85818ecc3601148b4b195d29fb144fa7"
+    },
+    {
+      "file": "util/variable_zod.ts",
+      "originalSha": "f8603d20cbfd0f94bc7367b03ab503f60a05bf0bd39885bf2361f196c23dc436"
+    },
+    {
+      "file": "util/streaming.ts",
+      "originalSha": "c1941af514f7158186d2a4929afd1be3ce3d32b77207378427a68433edccfa2b"
+    },
+    {
+      "file": "util/gitlab.ts",
+      "originalSha": "e907ba6ecb8f91ba818ac1cb505ba085e9a8edb4c623f8c7f25e35a30bda9df9"
+    },
+    {
+      "file": "util/iframe_srcdoc.html",
+      "originalSha": "e59d9a9abc7d9e789d6b1717a90115c75fbfdcfc771de6554010e9bf6496b0c8"
+    },
+    {
+      "file": "package.json",
+      "originalSha": "64a0960b6e818f09146da14bb069f1440a0ddd8b2cda2754ed9e65725cac190f"
+    },
+    {
+      "file": "tsconfig.json",
+      "originalSha": "173bef9ba3e846a0049cbe23472f8a9f1359389c56fc6b142ed7ade24724643f"
+    },
+    {
+      "file": "webpack.config.ts",
+      "originalSha": "47ddcb1f70299f6e666cfc216301b2b5a5a7b1866acd7a81e05cf1bd6e80fc62"
+    },
+    {
+      "file": "LICENSE",
+      "originalSha": "ffcca38841adb694b6f380647e15f17c446a4d1656fed51a1e2041d064c94cc8"
+    }
+  ]
+}

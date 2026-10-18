@@ -1,5 +1,5 @@
 {
-  "release": "v2026.10.18.1",
+  "release": "v2026.10.19.1",
   "files": [
     {
       "file": ".gitattributes",
@@ -1283,13 +1283,13 @@
     },
     {
       "file": "README.md",
-      "bytes": 3727,
-      "sha256": "8c6e0d6de8fd98e8e458451bfab3c98cb9ccd3a459508a9cbca2a79ac88f0256"
+      "bytes": 4311,
+      "sha256": "5851466a873bbe8d5db77fd7c56f36dc5e5d58e2ba169e439f5001a282b9820b"
     },
     {
       "file": "runtime/mvu.js",
-      "bytes": 585864,
-      "sha256": "1735d0610ee135d9b02e05570e3eca38cfa337b140592d6e797893ce3a6da700"
+      "bytes": 587815,
+      "sha256": "3c02a73cc21eacf9c0df31efae1dccee088518b536220e2654cb21c4e25c08c7"
     },
     {
       "file": "runtime/mvu.js.LICENSE.txt",
@@ -1823,8 +1823,8 @@
     },
     {
       "file": "source/MagVarUpdate/src/function/update_variables.ts",
-      "bytes": 76438,
-      "sha256": "e21af1fa710383f378d176fea0dc6fce9516b9006f35a4a617eca7dd8e6b0da7"
+      "bytes": 76744,
+      "sha256": "674b6ff1569fc0a0da19969aa883a14772f7a98f723cd3d4e7d571d48ed80a9b"
     },
     {
       "file": "source/MagVarUpdate/src/i18n/index.ts",
@@ -2643,8 +2643,8 @@
     },
     {
       "file": "source/MagVarUpdate/tests/update_variables_errors.test.ts",
-      "bytes": 3414,
-      "sha256": "0cd06f7cd0e06ba6a09c6c4576c14d474a2b78e2e61e444f793431e5895cf50a"
+      "bytes": 3420,
+      "sha256": "0fb8bda2f421deb28ab4136a5b0d0673c6f07205c7c9617dbe2c3405489b9631"
     },
     {
       "file": "source/MagVarUpdate/tests/util_normalize_base_url.test.ts",
@@ -3405,6 +3405,16 @@
       "file": "vendor/three/0.160.0/three.module.js",
       "bytes": 1272972,
       "sha256": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495"
+    },
+    {
+      "file": "source/MagVarUpdate/src/function/update/missing_patch_close.ts",
+      "bytes": 3395,
+      "sha256": "f3e91b5126e614e68e693a0900f52bf04c2ac082936337917d9210b68b5bb810"
+    },
+    {
+      "file": "source/MagVarUpdate/tests/missing_patch_close.test.ts",
+      "bytes": 4235,
+      "sha256": "6029bdeeb7dbf1932a4b2625c2c8054ab502a433c144d8cd625574050bc38a41"
     }
   ]
 }

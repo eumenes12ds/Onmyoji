@@ -6,7 +6,7 @@ describe('updateVariables error collection', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         (globalThis as any).toastr = { warning: jest.fn(), error: jest.fn() };
-        useDataStore().settings.通知.变量更新出错 = true;
+        useDataStore().settings.通知.変数更新エラー = true;
     });
 
     const createVariables = (): MvuData => ({
@@ -16,7 +16,7 @@ describe('updateVariables error collection', () => {
     });
 
     test.each([true, false])('appends every native error with notifications %p', async enabled => {
-        useDataStore().settings.通知.变量更新出错 = enabled;
+        useDataStore().settings.通知.変数更新エラー = enabled;
         const errors = ['earlier error'];
         const variables = createVariables();
         const result = await updateVariables(
